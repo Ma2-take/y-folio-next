@@ -3,28 +3,6 @@ import React from 'react';
 export default function LandingPage() {
   return (
     <>
-      {/* Header */}
-      <nav className="bg-white shadow-lg fixed w-full z-50">
-        <div className="container mx-auto px-4">
-          <div className="flex justify-between items-center py-4">
-            <div className="flex items-center">
-              <i className="fas fa-briefcase text-2xl text-indigo-600 mr-2"></i>
-              <h1 className="text-2xl font-bold text-gray-800">Y-folio</h1>
-            </div>
-            <div className="hidden md:flex space-x-6">
-              <a href="#features" className="text-gray-600 hover:text-indigo-600 transition">機能</a>
-              <a href="#portfolio-list" className="text-gray-600 hover:text-indigo-600 transition">ポートフォリオ一覧</a>
-              <a href="#" className="text-gray-600 hover:text-indigo-600 transition">タグ一覧</a>
-            </div>
-            <div className="flex space-x-3">
-              <button className="px-4 py-2 text-indigo-600 border border-indigo-600 rounded-lg hover:bg-indigo-50 transition">ログイン</button>
-              <button className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition">新規登録</button>
-            </div>
-          </div>
-        </div>
-      </nav>
-
-      {/* Hero Section */}
       <section className="gradient-bg text-white pt-24 pb-16">
         <div className="container mx-auto px-4 text-center">
           <div className="fade-in">
