@@ -6,11 +6,11 @@ import React from 'react';
 
 const LayoutWrapper = ({ children }: { children: React.ReactNode }) => {
     const pathname = usePathname();
-    const isAdminPage = pathname.startsWith('/admin');
+    const isNavHidden = pathname.startsWith('/admin') || pathname.startsWith('/dashboard');
 
     return (
         <>
-            {!isAdminPage && <NavBar />}
+            {!isNavHidden && <NavBar />}
             {children}
         </>
     );
