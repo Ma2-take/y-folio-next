@@ -1,142 +1,165 @@
-import {
-  Briefcase,
-  LayoutDashboard,
-  Edit,
-  Eye,
-  Share2,
-  UserCog,
-  LogOut,
-  HelpCircle,
-  Bell,
-  Plus,
-  Heart,
-  CheckCircle,
-  Calendar,
-  FileText,
-  LineChart,
-} from "lucide-react";
+import { Briefcase, ArrowLeft, Save, User, Code, Projector, Cog, Plus } from 'lucide-react';
 
 const PortfolioEditPage = () => {
   return (
-    <div className="flex bg-gray-50 text-gray-800">
-      {/* Sidebar */}
-      <aside className="fixed inset-y-0 left-0 w-64 bg-white shadow-lg z-50 flex flex-col">
-        <div className="flex items-center justify-center h-16 border-b border-gray-200 shrink-0">
-          <div className="flex items-center">
-            <Briefcase className="w-7 h-7 text-indigo-600" />
-            <h1 className="text-xl font-bold text-gray-800 ml-2">Y-folio</h1>
-          </div>
-        </div>
-        <nav className="mt-6 flex-1">
-          <div className="px-4 mb-4">
+    <div className="bg-gray-50 min-h-screen">
+      {/* Header */}
+      <nav className="bg-white shadow-md">
+        <div className="container mx-auto px-4">
+          <div className="flex justify-between items-center py-4">
             <div className="flex items-center">
-              <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold">
-                田
-              </div>
-              <div className="ml-3">
-                <p className="text-sm font-medium text-gray-700">田中 太郎</p>
-                <p className="text-xs text-gray-500">東京大学</p>
-              </div>
-            </div>
-          </div>
-          <div className="px-4 mt-6 mb-4">
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">メニュー</p>
-          </div>
-          <div className="px-4 space-y-2">
-            <a href="/dashboard" className="flex items-center px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100">
-              <LayoutDashboard className="w-5 h-5 mr-3" />
-              <span>ダッシュボード</span>
-            </a>
-            <a href="#" className="flex items-center px-4 py-3 rounded-lg text-white bg-indigo-600">
-              <Edit className="w-5 h-5 mr-3" />
-              <span>ポートフォリオ編集</span>
-            </a>
-            <a href="#" className="flex items-center px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100">
-              <Eye className="w-5 h-5 mr-3" />
-              <span>公開ページ表示</span>
-            </a>
-            <a href="#" className="flex items-center px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100">
-              <Share2 className="w-5 h-5 mr-3" />
-              <span>共有</span>
-            </a>
-          </div>
-          <div className="px-4 mt-8 mb-4">
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">アカウント</p>
-          </div>
-          <div className="px-4 space-y-2">
-            <a href="#" className="flex items-center px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100">
-              <UserCog className="w-5 h-5 mr-3" />
-              <span>アカウント設定</span>
-            </a>
-            <a href="#" className="flex items-center px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100">
-              <LogOut className="w-5 h-5 mr-3" />
-              <span>ログアウト</span>
-            </a>
-          </div>
-        </nav>
-        <div className="p-4 border-t border-gray-200 shrink-0">
-          <a href="#" className="flex items-center text-sm text-gray-600 hover:text-indigo-600 transition">
-            <HelpCircle className="w-5 h-5 mr-2" />
-            ヘルプ & サポート
-          </a>
-        </div>
-      </aside>
-      {/* Main Content */}
-      <div className="ml-64 flex-1">
-        <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0">
-          <div className="flex items-center justify-between px-6 py-4">
-            <div>
-              <h2 className="text-2xl font-bold text-gray-800">ポートフォリオ編集</h2>
-              <p className="text-gray-600">あなたのポートフォリオ情報を編集できます</p>
-            </div>
-            <div className="flex items-center space-x-4">
-              <button className="p-2 text-gray-400 hover:text-gray-600 transition">
-                <Bell className="w-6 h-6" />
-              </button>
-              <a href="#" className="flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition">
-                <Plus className="w-5 h-5 mr-2" />
-                新規作成
+              <a href="/dashboard" className="flex items-center">
+                <Briefcase className="w-7 h-7 text-indigo-600 mr-2" />
+                <h1 className="text-2xl font-bold text-gray-800">Y-folio</h1>
               </a>
             </div>
+            <div className="flex items-center space-x-4">
+              <a href="/dashboard" className="text-gray-600 hover:text-indigo-600 transition flex items-center">
+                <ArrowLeft className="w-5 h-5 mr-1" />ダッシュボードへ戻る
+              </a>
+              <button className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition flex items-center" disabled>
+                <Save className="w-5 h-5 mr-1" />保存（未実装）
+              </button>
+            </div>
           </div>
-        </header>
-        <main className="p-6">
-          <div className="max-w-2xl mx-auto bg-white rounded-lg shadow-md p-8">
-            <h3 className="text-lg font-semibold text-gray-800 mb-6">基本情報</h3>
-            <form className="space-y-6">
+        </div>
+      </nav>
+      <main className="py-10">
+        <div className="form-section bg-white rounded-lg shadow-md p-8 max-w-3xl mx-auto">
+          <h2 className="text-2xl font-bold text-gray-800 mb-8">ポートフォリオ編集</h2>
+
+          {/* 基本情報 */}
+          <div className="section-card active p-6 rounded-lg mb-6 border-l-4 border-indigo-600 bg-slate-50">
+            <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+              <User className="w-5 h-5 mr-2 text-indigo-600" />基本情報
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">氏名</label>
-                <input type="text" className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="例: 田中 太郎" disabled />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">大学・学部</label>
-                <input type="text" className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="例: 東京大学・情報科学科" disabled />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">学年</label>
-                <input type="text" className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="例: 4年生" disabled />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">自己紹介</label>
-                <textarea className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" rows={4} placeholder="自己紹介文を入力" disabled></textarea>
+                <label className="block text-sm font-medium text-gray-700 mb-2">お名前</label>
+                <input type="text" className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent" placeholder="山田 太郎" value="田中 太郎" disabled />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">スキルタグ</label>
-                <div className="flex flex-wrap gap-2">
-                  <span className="px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded-full">JavaScript</span>
-                  <span className="px-3 py-1 bg-green-100 text-green-800 text-sm rounded-full">React</span>
-                  <span className="px-3 py-1 bg-purple-100 text-purple-800 text-sm rounded-full">Python</span>
-                </div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">大学・学部</label>
+                <input type="text" className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent" placeholder="東京大学 工学部" value="東京大学 情報科学科" disabled />
               </div>
-              <div className="flex justify-end">
-                <button type="button" className="bg-indigo-400 text-white px-6 py-2 rounded-md font-semibold cursor-not-allowed opacity-60" disabled>
-                  保存（未実装）
-                </button>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">学年</label>
+                <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent" disabled>
+                  <option value="">選択してください</option>
+                  <option value="1年生">1年生</option>
+                  <option value="2年生">2年生</option>
+                  <option value="3年生">3年生</option>
+                  <option value="4年生" selected>4年生</option>
+                  <option value="修士1年">修士1年</option>
+                  <option value="修士2年">修士2年</option>
+                  <option value="博士課程">博士課程</option>
+                </select>
               </div>
-            </form>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">メールアドレス</label>
+                <input type="email" className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent" placeholder="yamada@example.com" value="tanaka@example.com" disabled />
+              </div>
+            </div>
+            <div className="mt-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">自己紹介</label>
+              <textarea rows={4} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent" placeholder="あなたの強みや興味のある分野について教えてください" disabled>Web開発とAI技術に興味があり、複数のプロジェクトを手がけています。</textarea>
+            </div>
           </div>
-        </main>
-      </div>
+
+          {/* スキル・技術 */}
+          <div className="section-card p-6 rounded-lg mb-6">
+            <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+              <Code className="w-5 h-5 mr-2 text-indigo-600" />スキル・技術
+            </h3>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">スキルタグ</label>
+              <div className="flex flex-wrap gap-2 p-2 border border-gray-300 rounded-lg min-h-[42px]">
+                <span className="bg-indigo-600 text-white px-3 py-1 rounded-full text-sm flex items-center">JavaScript</span>
+                <span className="bg-indigo-600 text-white px-3 py-1 rounded-full text-sm flex items-center">React</span>
+                <span className="bg-indigo-600 text-white px-3 py-1 rounded-full text-sm flex items-center">Python</span>
+                <input type="text" placeholder="スキルを追加 (未実装)" className="flex-1 outline-none bg-transparent min-w-32" disabled />
+              </div>
+              <p className="text-sm text-gray-500 mt-1">例：JavaScript, React, Python, デザイン思考</p>
+            </div>
+            <div className="mt-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">資格・検定</label>
+              <textarea rows={3} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent" placeholder="例：TOEIC 850点、基本情報技術者試験 合格" disabled>TOEIC 900点</textarea>
+            </div>
+          </div>
+
+          {/* プロジェクト・実績 */}
+          <div className="section-card p-6 rounded-lg mb-6">
+            <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+              <Projector className="w-5 h-5 mr-2 text-indigo-600" />プロジェクト・実績
+            </h3>
+            <div className="space-y-4">
+              <div className="border border-gray-200 rounded-lg p-4">
+                <input type="text" placeholder="プロジェクト名" className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent mb-2" value="AIチャットボット開発" disabled />
+                <textarea placeholder="プロジェクトの説明、使用技術、成果など" rows={3} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent mb-2" disabled>社内向けAIチャットボットを開発。PythonとReactを使用し、業務効率化に貢献。</textarea>
+                <input type="url" placeholder="プロジェクトURL（任意）" className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent" value="https://github.com/tanaka/ai-chatbot" disabled />
+              </div>
+              <div className="border border-gray-200 rounded-lg p-4">
+                <input type="text" placeholder="プロジェクト名" className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent mb-2" value="Webポートフォリオサイト" disabled />
+                <textarea placeholder="プロジェクトの説明、使用技術、成果など" rows={3} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent mb-2" disabled>自身の実績をまとめたWebポートフォリオサイトを作成。Next.jsとTailwind CSSを活用。</textarea>
+                <input type="url" placeholder="プロジェクトURL（任意）" className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent" value="https://tanaka-portfolio.com" disabled />
+              </div>
+              <button type="button" className="w-full py-2 border-2 border-dashed border-gray-300 rounded-lg text-gray-500 mt-2 cursor-not-allowed flex items-center justify-center" disabled>
+                <Plus className="w-5 h-5 mr-2" />プロジェクトを追加（未実装）
+              </button>
+            </div>
+          </div>
+
+          {/* 経験・活動 */}
+          <div className="section-card p-6 rounded-lg mb-6">
+            <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+              <Briefcase className="w-5 h-5 mr-2 text-indigo-600" />経験・活動
+            </h3>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">インターンシップ経験</label>
+                <textarea rows={3} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent" placeholder="インターンシップでの経験や学んだことを記載してください" disabled>株式会社サンプルでAI開発インターンを経験。実務での開発フローを学びました。</textarea>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">課外活動・サークル</label>
+                <textarea rows={3} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent" placeholder="サークル活動、ボランティア、アルバイトなど" disabled>プログラミングサークル所属。ハッカソン参加経験あり。</textarea>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">受賞歴・表彰</label>
+                <textarea rows={2} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent" placeholder="コンテスト受賞、学術表彰など" disabled>2024年 学生ハッカソン最優秀賞</textarea>
+              </div>
+            </div>
+          </div>
+
+          {/* 公開設定 */}
+          <div className="section-card p-6 rounded-lg mb-6">
+            <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+              <Cog className="w-5 h-5 mr-2 text-indigo-600" />公開設定
+            </h3>
+            <div className="space-y-4">
+              <div>
+                <label className="flex items-center">
+                  <input type="checkbox" className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500" checked disabled />
+                  <span className="ml-2 text-sm text-gray-700">ポートフォリオを公開する</span>
+                </label>
+                <p className="text-sm text-gray-500 mt-1">公開すると他のユーザーがあなたのポートフォリオを閲覧できます</p>
+              </div>
+              <div>
+                <label className="flex items-center">
+                  <input type="checkbox" className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500" disabled />
+                  <span className="ml-2 text-sm text-gray-700">1年後に自動削除する</span>
+                </label>
+                <p className="text-sm text-gray-500 mt-1">チェックを外すと、手動で削除するまでポートフォリオが保持されます</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex justify-end mt-8">
+            <button className="px-6 py-3 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition flex items-center" disabled>
+              <Save className="w-5 h-5 mr-2" />保存（未実装）
+            </button>
+          </div>
+        </div>
+      </main>
     </div>
   );
 };
