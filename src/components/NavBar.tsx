@@ -21,8 +21,8 @@ export default function NavBar() {
                         <Link href="/dashboard" className="text-gray-600 hover:text-indigo-600 transition">ダッシュボード</Link>
                     </div>
                     <div className="flex space-x-3">
-                        <button className="px-4 py-2 text-indigo-600 border border-indigo-600 rounded-lg hover:bg-indigo-50 transition">ログイン</button>
-                        <button className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition">新規登録</button>
+                        <Link href="/login" className="px-4 py-2 text-indigo-600 border border-indigo-600 rounded-lg hover:bg-indigo-50 transition">ログイン</Link>
+                        <Link href="/signup" className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition">新規登録</Link>
                     </div>
                 </div>
             </div>
