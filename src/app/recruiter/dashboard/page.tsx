@@ -140,10 +140,9 @@ export default function RecruiterDashboardPage() {
                   type="text"
                   className="search-input w-full px-6 py-4 pl-12 pr-20 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-200"
                   placeholder="スキル・大学・名前で学生を検索..."
-                  disabled
                 />
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
-                <button className="absolute right-2 top-1/2 -translate-y-1/2 bg-indigo-300 text-white px-4 py-2 rounded-md cursor-not-allowed" disabled>
+                <button className="absolute right-2 top-1/2 -translate-y-1/2 bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition">
                   検索
                 </button>
               </div>
