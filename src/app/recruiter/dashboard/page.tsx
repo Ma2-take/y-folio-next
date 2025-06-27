@@ -1,6 +1,7 @@
 "use client";
 import { Building2, LayoutDashboard, Search, Star, Mail, UserCog, LogOut, HelpCircle, Bell, Users, FileText, Star as StarIcon } from "lucide-react";
 import React from "react";
+import Link from "next/link";
 
 export default function RecruiterDashboardPage() {
   return (
@@ -28,42 +29,42 @@ export default function RecruiterDashboardPage() {
             <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">メニュー</p>
           </div>
           <div className="px-4 space-y-2">
-            <button className="sidebar-item active flex items-center px-4 py-3 rounded-lg text-white bg-indigo-600 w-full" disabled>
+            <Link href="/recruiter/dashboard" className="sidebar-item active flex items-center px-4 py-3 rounded-lg text-white bg-indigo-600 w-full">
               <LayoutDashboard className="w-5 h-5 mr-3" />
               <span>ダッシュボード</span>
-            </button>
-            <button className="sidebar-item flex items-center px-4 py-3 rounded-lg text-gray-700 w-full" disabled>
+            </Link>
+            <Link href="/recruiter/search" className="sidebar-item flex items-center px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100 w-full">
               <Search className="w-5 h-5 mr-3" />
               <span>ポートフォリオ検索</span>
-            </button>
-            <button className="sidebar-item flex items-center px-4 py-3 rounded-lg text-gray-700 w-full" disabled>
+            </Link>
+            <Link href="/recruiter/favorites" className="sidebar-item flex items-center px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100 w-full">
               <Star className="w-5 h-5 mr-3" />
               <span>お気に入り</span>
-            </button>
-            <button className="sidebar-item flex items-center px-4 py-3 rounded-lg text-gray-700 w-full" disabled>
+            </Link>
+            <Link href="/recruiter/messages" className="sidebar-item flex items-center px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100 w-full">
               <Mail className="w-5 h-5 mr-3" />
               <span>メッセージ</span>
-            </button>
+            </Link>
           </div>
           <div className="px-4 mt-8 mb-4">
             <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">アカウント</p>
           </div>
           <div className="px-4 space-y-2">
-            <button className="sidebar-item flex items-center px-4 py-3 rounded-lg text-gray-700 w-full" disabled>
+            <Link href="/recruiter/account-settings" className="sidebar-item flex items-center px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100 w-full">
               <UserCog className="w-5 h-5 mr-3" />
               <span>アカウント設定</span>
-            </button>
-            <button className="sidebar-item flex items-center px-4 py-3 rounded-lg text-gray-700 w-full" disabled>
+            </Link>
+            <Link href="/recruiter/logout" className="sidebar-item flex items-center px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100 w-full">
               <LogOut className="w-5 h-5 mr-3" />
               <span>ログアウト</span>
-            </button>
+            </Link>
           </div>
         </nav>
         <div className="p-4 border-t border-gray-200">
-          <button className="flex items-center text-sm text-gray-600 hover:text-indigo-600 transition w-full" disabled>
+          <Link href="/recruiter/help" className="flex items-center text-sm text-gray-600 hover:text-indigo-600 transition w-full">
             <HelpCircle className="w-5 h-5 mr-2" />
             ヘルプ & サポート
-          </button>
+          </Link>
         </div>
       </div>
       {/* Main Content */}
