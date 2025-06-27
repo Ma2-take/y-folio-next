@@ -42,3 +42,4 @@ next-env.d.ts
 
 #　layout-design html
 /layout-temp 
+/src/generated/prisma

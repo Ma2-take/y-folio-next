@@ -1,6 +1,238 @@
-import { Briefcase, ArrowLeft, Save, User, Code, Projector, Cog, Plus } from 'lucide-react';
+"use client";
+import { Briefcase, ArrowLeft, Save, User, Code, Projector, Cog, Plus, X } from 'lucide-react';
+import React, { useState, useRef } from 'react';
+
+// ===== データ設計（案1: シンプル分離型） =====
+
+// 基本情報の型定義
+interface BasicInfo {
+  name: string;
+  university: string;
+  grade: string;
+  birthDate: string;
+  email: string;
+  selfIntroduction: string;
+}
+
+// スキル・技術の型定義
+interface Skills {
+  skillTags: string[];
+  certifications: string;
+}
+
+// プロジェクト・実績の型定義
+interface Project {
+  id: string;
+  name: string;
+  description: string;
+  url?: string;
+}
+
+// 経験・活動の型定義
+interface Experience {
+  internship: string;
+  extracurricular: string;
+  awards: string;
+}
+
+// 公開設定の型定義
+interface PublicationSettings {
+  isPublic: boolean;
+  autoDeleteAfterOneYear: boolean;
+}
+
+// ポートフォリオ全体の型定義
+interface Portfolio {
+  id: string;
+  userId: string;
+  basicInfo: BasicInfo;
+  skills: Skills;
+  projects: Project[];
+  experience: Experience;
+  publicationSettings: PublicationSettings;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// フォーム状態の型定義
+interface PortfolioFormState {
+  basicInfo: BasicInfo;
+  skills: Skills;
+  projects: Project[];
+  experience: Experience;
+  publicationSettings: PublicationSettings;
+  isDirty: boolean;
+  isSubmitting: boolean;
+}
+
+const initialForm: PortfolioFormState = {
+  basicInfo: {
+    name: '田中 太郎',
+    university: '東京大学 情報科学科',
+    grade: '4年生',
+    birthDate: '2000-01-01',
+    email: 'tanaka@example.com',
+    selfIntroduction: 'Web開発とAI技術に興味があり、複数のプロジェクトを手がけています。',
+  },
+  skills: {
+    skillTags: ['JavaScript', 'React', 'Python'],
+    certifications: 'TOEIC 900点',
+  },
+  projects: [
+    {
+      id: 'proj_001',
+      name: 'AIチャットボット開発',
+      description: '社内向けAIチャットボットを開発。PythonとReactを使用し、業務効率化に貢献。',
+      url: 'https://github.com/tanaka/ai-chatbot',
+    },
+    {
+      id: 'proj_002',
+      name: 'Webポートフォリオサイト',
+      description: '自身の実績をまとめたWebポートフォリオサイトを作成。Next.jsとTailwind CSSを活用。',
+      url: 'https://tanaka-portfolio.com',
+    },
+  ],
+  experience: {
+    internship: '株式会社サンプルでAI開発インターンを経験。実務での開発フローを学びました。',
+    extracurricular: 'プログラミングサークル所属。ハッカソン参加経験あり。',
+    awards: '2024年 学生ハッカソン最優秀賞',
+  },
+  publicationSettings: {
+    isPublic: true,
+    autoDeleteAfterOneYear: false,
+  },
+  isDirty: false,
+  isSubmitting: false,
+};
+
+// ===== コンポーネント =====
 
 const PortfolioEditPage = () => {
+  const [form, setForm] = useState<PortfolioFormState>(initialForm);
+  const [skillInput, setSkillInput] = useState("");
+  const skillInputRef = useRef<HTMLInputElement>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveMessage, setSaveMessage] = useState("");
+
+  // 基本情報ハンドラ
+  const handleBasicInfoChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setForm((prev) => ({
+      ...prev,
+      basicInfo: {
+        ...prev.basicInfo,
+        [name]: value,
+      },
+      isDirty: true,
+    }));
+  };
+
+  // スキルタグ追加
+  const handleSkillInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSkillInput(e.target.value);
+  };
+  const handleSkillInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter" && skillInput.trim()) {
+      e.preventDefault();
+      if (!form.skills.skillTags.includes(skillInput.trim())) {
+        setForm((prev) => ({
+          ...prev,
+          skills: {
+            ...prev.skills,
+            skillTags: [...prev.skills.skillTags, skillInput.trim()],
+          },
+          isDirty: true,
+        }));
+      }
+      setSkillInput("");
+    }
+  };
+  // スキルタグ削除
+  const handleRemoveSkillTag = (idx: number) => {
+    setForm((prev) => ({
+      ...prev,
+      skills: {
+        ...prev.skills,
+        skillTags: prev.skills.skillTags.filter((_, i) => i !== idx),
+      },
+      isDirty: true,
+    }));
+    // フォーカスを戻す
+    setTimeout(() => skillInputRef.current?.focus(), 0);
+  };
+
+  // 資格・検定
+  const handleSkillsChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setForm((prev) => ({
+      ...prev,
+      skills: {
+        ...prev.skills,
+        [name]: value,
+      },
+      isDirty: true,
+    }));
+  };
+
+  // プロジェクト
+  const handleProjectChange = (idx: number, field: string, value: string) => {
+    setForm((prev) => {
+      const newProjects = prev.projects.map((p, i) =>
+        i === idx ? { ...p, [field]: value } : p
+      );
+      return { ...prev, projects: newProjects, isDirty: true };
+    });
+  };
+
+  // 経験・活動
+  const handleExperienceChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setForm((prev) => ({
+      ...prev,
+      experience: {
+        ...prev.experience,
+        [name]: value,
+      },
+      isDirty: true,
+    }));
+  };
+
+  // 公開設定
+  const handlePublicationChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, checked } = e.target;
+    setForm((prev) => ({
+      ...prev,
+      publicationSettings: {
+        ...prev.publicationSettings,
+        [name]: checked,
+      },
+      isDirty: true,
+    }));
+  };
+
+  // 保存処理
+  const handleSave = async () => {
+    setIsSaving(true);
+    setSaveMessage("");
+    try {
+      const res = await fetch("/api/portfolio/save", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
+      if (res.ok) {
+        setSaveMessage("保存しました");
+        setForm((prev) => ({ ...prev, isDirty: false }));
+      } else {
+        setSaveMessage("保存に失敗しました");
+      }
+    } catch (e) {
+      setSaveMessage("保存時にエラーが発生しました");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   return (
     <div className="bg-gray-50 min-h-screen">
       {/* Header */}
@@ -17,8 +249,13 @@ const PortfolioEditPage = () => {
               <a href="/dashboard" className="text-gray-600 hover:text-indigo-600 transition flex items-center">
                 <ArrowLeft className="w-5 h-5 mr-1" />ダッシュボードへ戻る
               </a>
-              <button className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition flex items-center" disabled>
-                <Save className="w-5 h-5 mr-1" />保存（未実装）
+              <button
+                className={`px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition flex items-center ${isSaving || !form.isDirty ? 'opacity-60 cursor-not-allowed' : ''}`}
+                onClick={handleSave}
+                disabled={isSaving || !form.isDirty}
+              >
+                <Save className="w-5 h-5 mr-1" />
+                {isSaving ? "保存中..." : "保存"}
               </button>
             </div>
           </div>
@@ -27,7 +264,11 @@ const PortfolioEditPage = () => {
       <main className="py-10">
         <div className="form-section bg-white rounded-lg shadow-md p-8 max-w-3xl mx-auto">
           <h2 className="text-2xl font-bold text-gray-800 mb-8">ポートフォリオ編集</h2>
-
+          {saveMessage && (
+            <div className="mb-4 p-3 bg-green-100 border border-green-400 text-green-700 rounded-lg text-sm">
+              {saveMessage}
+            </div>
+          )}
           {/* 基本情報 */}
           <div className="section-card active p-6 rounded-lg mb-6 border-l-4 border-indigo-600 bg-slate-50">
             <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
@@ -36,33 +277,37 @@ const PortfolioEditPage = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">お名前</label>
-                <input type="text" className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent" placeholder="山田 太郎" value="田中 太郎" disabled />
+                <input type="text" name="name" className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent" placeholder="山田 太郎" value={form.basicInfo.name} onChange={handleBasicInfoChange} />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">大学・学部</label>
-                <input type="text" className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent" placeholder="東京大学 工学部" value="東京大学 情報科学科" disabled />
+                <input type="text" name="university" className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent" placeholder="東京大学 工学部" value={form.basicInfo.university} onChange={handleBasicInfoChange} />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">学年</label>
-                <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent" disabled>
+                <select name="grade" className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent" value={form.basicInfo.grade} onChange={handleBasicInfoChange}>
                   <option value="">選択してください</option>
                   <option value="1年生">1年生</option>
                   <option value="2年生">2年生</option>
                   <option value="3年生">3年生</option>
-                  <option value="4年生" selected>4年生</option>
+                  <option value="4年生">4年生</option>
                   <option value="修士1年">修士1年</option>
                   <option value="修士2年">修士2年</option>
                   <option value="博士課程">博士課程</option>
                 </select>
               </div>
               <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">生年月日</label>
+                <input type="date" name="birthDate" className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent" value={form.basicInfo.birthDate} onChange={handleBasicInfoChange} />
+              </div>
+              <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">メールアドレス</label>
-                <input type="email" className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent" placeholder="yamada@example.com" value="tanaka@example.com" disabled />
+                <input type="email" name="email" className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent" placeholder="yamada@example.com" value={form.basicInfo.email} onChange={handleBasicInfoChange} />
               </div>
             </div>
             <div className="mt-4">
               <label className="block text-sm font-medium text-gray-700 mb-2">自己紹介</label>
-              <textarea rows={4} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent" placeholder="あなたの強みや興味のある分野について教えてください" disabled>Web開発とAI技術に興味があり、複数のプロジェクトを手がけています。</textarea>
+              <textarea name="selfIntroduction" rows={4} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent" placeholder="あなたの強みや興味のある分野について教えてください" value={form.basicInfo.selfIntroduction} onChange={handleBasicInfoChange}></textarea>
             </div>
           </div>
 
@@ -74,16 +319,29 @@ const PortfolioEditPage = () => {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">スキルタグ</label>
               <div className="flex flex-wrap gap-2 p-2 border border-gray-300 rounded-lg min-h-[42px]">
-                <span className="bg-indigo-600 text-white px-3 py-1 rounded-full text-sm flex items-center">JavaScript</span>
-                <span className="bg-indigo-600 text-white px-3 py-1 rounded-full text-sm flex items-center">React</span>
-                <span className="bg-indigo-600 text-white px-3 py-1 rounded-full text-sm flex items-center">Python</span>
-                <input type="text" placeholder="スキルを追加 (未実装)" className="flex-1 outline-none bg-transparent min-w-32" disabled />
+                {form.skills.skillTags.map((tag, idx) => (
+                  <span key={idx} className="bg-indigo-600 text-white px-3 py-1 rounded-full text-sm flex items-center">
+                    {tag}
+                    <button type="button" className="ml-1 hover:bg-indigo-800 rounded-full p-0.5" onClick={() => handleRemoveSkillTag(idx)} aria-label="タグ削除">
+                      <X className="w-3 h-3" />
+                    </button>
+                  </span>
+                ))}
+                <input
+                  type="text"
+                  ref={skillInputRef}
+                  value={skillInput}
+                  onChange={handleSkillInputChange}
+                  onKeyDown={handleSkillInputKeyDown}
+                  placeholder="スキルを追加"
+                  className="flex-1 outline-none bg-transparent min-w-32"
+                />
               </div>
               <p className="text-sm text-gray-500 mt-1">例：JavaScript, React, Python, デザイン思考</p>
             </div>
             <div className="mt-4">
               <label className="block text-sm font-medium text-gray-700 mb-2">資格・検定</label>
-              <textarea rows={3} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent" placeholder="例：TOEIC 850点、基本情報技術者試験 合格" disabled>TOEIC 900点</textarea>
+              <textarea name="certifications" rows={3} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent" placeholder="例：TOEIC 850点、基本情報技術者試験 合格" value={form.skills.certifications} onChange={handleSkillsChange}></textarea>
             </div>
           </div>
 
@@ -93,16 +351,13 @@ const PortfolioEditPage = () => {
               <Projector className="w-5 h-5 mr-2 text-indigo-600" />プロジェクト・実績
             </h3>
             <div className="space-y-4">
-              <div className="border border-gray-200 rounded-lg p-4">
-                <input type="text" placeholder="プロジェクト名" className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent mb-2" value="AIチャットボット開発" disabled />
-                <textarea placeholder="プロジェクトの説明、使用技術、成果など" rows={3} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent mb-2" disabled>社内向けAIチャットボットを開発。PythonとReactを使用し、業務効率化に貢献。</textarea>
-                <input type="url" placeholder="プロジェクトURL（任意）" className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent" value="https://github.com/tanaka/ai-chatbot" disabled />
-              </div>
-              <div className="border border-gray-200 rounded-lg p-4">
-                <input type="text" placeholder="プロジェクト名" className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent mb-2" value="Webポートフォリオサイト" disabled />
-                <textarea placeholder="プロジェクトの説明、使用技術、成果など" rows={3} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent mb-2" disabled>自身の実績をまとめたWebポートフォリオサイトを作成。Next.jsとTailwind CSSを活用。</textarea>
-                <input type="url" placeholder="プロジェクトURL（任意）" className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent" value="https://tanaka-portfolio.com" disabled />
-              </div>
+              {form.projects.map((project, idx) => (
+                <div key={project.id} className="border border-gray-200 rounded-lg p-4">
+                  <input type="text" placeholder="プロジェクト名" className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent mb-2" value={project.name} onChange={e => handleProjectChange(idx, 'name', e.target.value)} />
+                  <textarea placeholder="プロジェクトの説明、使用技術、成果など" rows={3} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent mb-2" value={project.description} onChange={e => handleProjectChange(idx, 'description', e.target.value)}></textarea>
+                  <input type="url" placeholder="プロジェクトURL（任意）" className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent" value={project.url || ''} onChange={e => handleProjectChange(idx, 'url', e.target.value)} />
+                </div>
+              ))}
               <button type="button" className="w-full py-2 border-2 border-dashed border-gray-300 rounded-lg text-gray-500 mt-2 cursor-not-allowed flex items-center justify-center" disabled>
                 <Plus className="w-5 h-5 mr-2" />プロジェクトを追加（未実装）
               </button>
@@ -117,15 +372,15 @@ const PortfolioEditPage = () => {
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">インターンシップ経験</label>
-                <textarea rows={3} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent" placeholder="インターンシップでの経験や学んだことを記載してください" disabled>株式会社サンプルでAI開発インターンを経験。実務での開発フローを学びました。</textarea>
+                <textarea name="internship" rows={3} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent" placeholder="インターンシップでの経験や学んだことを記載してください" value={form.experience.internship} onChange={handleExperienceChange}></textarea>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">課外活動・サークル</label>
-                <textarea rows={3} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent" placeholder="サークル活動、ボランティア、アルバイトなど" disabled>プログラミングサークル所属。ハッカソン参加経験あり。</textarea>
+                <textarea name="extracurricular" rows={3} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent" placeholder="サークル活動、ボランティア、アルバイトなど" value={form.experience.extracurricular} onChange={handleExperienceChange}></textarea>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">受賞歴・表彰</label>
-                <textarea rows={2} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent" placeholder="コンテスト受賞、学術表彰など" disabled>2024年 学生ハッカソン最優秀賞</textarea>
+                <textarea name="awards" rows={2} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent" placeholder="コンテスト受賞、学術表彰など" value={form.experience.awards} onChange={handleExperienceChange}></textarea>
               </div>
             </div>
           </div>
@@ -138,14 +393,14 @@ const PortfolioEditPage = () => {
             <div className="space-y-4">
               <div>
                 <label className="flex items-center">
-                  <input type="checkbox" className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500" checked disabled />
+                  <input type="checkbox" name="isPublic" className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500" checked={form.publicationSettings.isPublic} onChange={handlePublicationChange} />
                   <span className="ml-2 text-sm text-gray-700">ポートフォリオを公開する</span>
                 </label>
                 <p className="text-sm text-gray-500 mt-1">公開すると他のユーザーがあなたのポートフォリオを閲覧できます</p>
               </div>
               <div>
                 <label className="flex items-center">
-                  <input type="checkbox" className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500" disabled />
+                  <input type="checkbox" name="autoDeleteAfterOneYear" className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500" checked={form.publicationSettings.autoDeleteAfterOneYear} onChange={handlePublicationChange} />
                   <span className="ml-2 text-sm text-gray-700">1年後に自動削除する</span>
                 </label>
                 <p className="text-sm text-gray-500 mt-1">チェックを外すと、手動で削除するまでポートフォリオが保持されます</p>
@@ -154,8 +409,12 @@ const PortfolioEditPage = () => {
           </div>
 
           <div className="flex justify-end mt-8">
-            <button className="px-6 py-3 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition flex items-center" disabled>
-              <Save className="w-5 h-5 mr-2" />保存（未実装）
+            <button
+              className={`px-6 py-3 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition flex items-center ${isSaving || !form.isDirty ? 'opacity-60 cursor-not-allowed' : ''}`}
+              onClick={handleSave}
+              disabled={isSaving || !form.isDirty}
+            >
+              <Save className="w-5 h-5 mr-2" />{isSaving ? "保存中..." : "保存"}
             </button>
           </div>
         </div>
