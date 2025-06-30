@@ -48,3 +48,4 @@ next-env.d.ts
 ## Custom
 .prisma/
 !.env.sample
+/src/generated/prisma
