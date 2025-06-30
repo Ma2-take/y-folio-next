@@ -43,7 +43,7 @@ const AdminPage = () => {
             </li>
             <li className="mb-2">
               <a
-                href="/admin/user-management"
+                href="/admin/user"
                 className="flex items-center p-2 text-gray-700 hover:bg-gray-200 rounded-lg"
               >
                 <Users className="w-5 h-5" />
@@ -52,7 +52,7 @@ const AdminPage = () => {
             </li>
             <li className="mb-2">
               <a
-                href="/admin/portfolio-management"
+                href="/admin/PortfolioManagement"
                 className="flex items-center p-2 text-gray-700 hover:bg-gray-200 rounded-lg"
               >
                 <FileText className="w-5 h-5" />
@@ -61,7 +61,7 @@ const AdminPage = () => {
             </li>
             <li className="mb-2">
               <a
-                href="/admin/tag-management"
+                href="/admin/tags"
                 className="flex items-center p-2 text-gray-700 hover:bg-gray-200 rounded-lg"
               >
                 <Tags className="w-5 h-5" />

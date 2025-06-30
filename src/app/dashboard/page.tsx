@@ -143,11 +143,11 @@ const DashboardPage = () => {
               <LayoutDashboard className="w-5 h-5 mr-3" />
               <span>ダッシュボード</span>
             </a>
-            <a href="/dashboard/portfolio-edit" className="flex items-center px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100">
+            <a href="/portfolio/edit" className="flex items-center px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100">
               <Edit className="w-5 h-5 mr-3" />
               <span>ポートフォリオ編集</span>
             </a>
-            <a href="/dashboard/portfolio-preview" className="flex items-center px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100">
+            <a href="/portfolio/preview" className="flex items-center px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100">
               <Eye className="w-5 h-5 mr-3" />
               <span>プレビュー</span>
             </a>
@@ -164,7 +164,7 @@ const DashboardPage = () => {
           </div>
 
           <div className="px-4 space-y-2">
-            <a href="/dashboard/account-settings" className="flex items-center px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100">
+            <a href="/account" className="flex items-center px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100">
               <UserCog className="w-5 h-5 mr-3" />
               <span>アカウント設定</span>
             </a>
@@ -197,7 +197,7 @@ const DashboardPage = () => {
               <button className="p-2 text-gray-400 hover:text-gray-600 transition">
                 <Bell className="w-6 h-6" />
               </button>
-              <a href="/dashboard/portfolio-create" className="flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition">
+              <a href="/portfolio/create" className="flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition">
                 <Plus className="w-5 h-5 mr-2" />
                 ポートフォリオ作成
               </a>
@@ -239,8 +239,8 @@ const DashboardPage = () => {
             <div className="lg:col-span-1 bg-white rounded-lg shadow-md p-6">
               <h3 className="text-lg font-semibold text-gray-800 mb-4">クイックアクション</h3>
               <div className="space-y-3">
-                  <a href="/dashboard/portfolio-edit" className="flex items-center p-4 border-2 border-transparent rounded-lg hover:bg-gray-50 hover:border-indigo-500"><Edit className="text-blue-600 w-6 h-6 mr-4" /><div><p className="font-medium text-gray-800">ポートフォリオを編集</p><p className="text-sm text-gray-500">基本情報や実績を更新</p></div></a>
-                  <a href="#" className="flex items-center p-4 border-2 border-transparent rounded-lg hover:bg-gray-50 hover:border-indigo-500"><Eye className="text-green-600 w-6 h-6 mr-4" /><div><p className="font-medium text-gray-800">プレビュー</p><p className="text-sm text-gray-500">公開ページを確認</p></div></a>
+                  <a href="/portfolio/edit" className="flex items-center p-4 border-2 border-transparent rounded-lg hover:bg-gray-50 hover:border-indigo-500"><Edit className="text-blue-600 w-6 h-6 mr-4" /><div><p className="font-medium text-gray-800">ポートフォリオを編集</p><p className="text-sm text-gray-500">基本情報や実績を更新</p></div></a>
+                  <a href="/portfolio/preview" className="flex items-center p-4 border-2 border-transparent rounded-lg hover:bg-gray-50 hover:border-indigo-500"><Eye className="text-green-600 w-6 h-6 mr-4" /><div><p className="font-medium text-gray-800">プレビュー</p><p className="text-sm text-gray-500">公開ページを確認</p></div></a>
                   <button onClick={handleShareClick} className="flex items-center p-4 border-2 border-transparent rounded-lg hover:bg-gray-50 hover:border-indigo-500 text-left w-full">
                     <Share2 className="text-purple-600 w-6 h-6 mr-4" />
                     <div>

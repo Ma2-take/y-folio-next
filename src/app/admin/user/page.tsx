@@ -163,15 +163,15 @@ export default function AdminUserManagementPage() {
               <ChartBar className="w-5 h-5 mr-3" />
               <span>ダッシュボード</span>
             </Link>
-            <Link href="/admin/user-management" className="sidebar-item active flex items-center px-4 py-3 rounded-lg text-white bg-indigo-600 w-full">
+            <Link href="/admin/user" className="sidebar-item active flex items-center px-4 py-3 rounded-lg text-white bg-indigo-600 w-full">
               <Users className="w-5 h-5 mr-3" />
               <span>ユーザー管理</span>
             </Link>
-            <Link href="/admin/portfolio-management" className="sidebar-item flex items-center px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100 w-full">
+            <Link href="/admin/PortfolioManagement" className="sidebar-item flex items-center px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100 w-full">
               <File className="w-5 h-5 mr-3" />
               <span>ポートフォリオ管理</span>
             </Link>
-            <Link href="/admin/tag-management" className="sidebar-item flex items-center px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100 w-full">
+            <Link href="/admin/tags" className="sidebar-item flex items-center px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100 w-full">
               <Tags className="w-5 h-5 mr-3" />
               <span>タグ管理</span>
             </Link>
