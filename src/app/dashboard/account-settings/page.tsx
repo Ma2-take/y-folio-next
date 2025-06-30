@@ -1,3 +1,5 @@
+"use client";
+
 import {
   Briefcase,
   LayoutDashboard,
@@ -10,8 +12,33 @@ import {
   Bell,
   Plus,
 } from "lucide-react";
+import React, { useState } from "react";
 
 const AccountSettingsPage = () => {
+  const [form, setForm] = useState({
+    name: "田中 太郎",
+    email: "tanaka@example.com",
+    password: "",
+  });
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveMessage, setSaveMessage] = useState("");
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setForm((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSaving(true);
+    setSaveMessage("");
+    // ダミー保存処理
+    setTimeout(() => {
+      setIsSaving(false);
+      setSaveMessage("保存しました");
+    }, 1000);
+  };
+
   return (
     <div className="flex bg-gray-50 text-gray-800">
       {/* Sidebar */}
@@ -98,22 +125,52 @@ const AccountSettingsPage = () => {
         <main className="p-6">
           <div className="max-w-2xl mx-auto bg-white rounded-lg shadow-md p-8">
             <h3 className="text-lg font-semibold text-gray-800 mb-6">アカウント情報</h3>
-            <form className="space-y-6">
+            {saveMessage && (
+              <div className="mb-4 p-3 bg-green-100 border border-green-400 text-green-700 rounded-lg text-sm">
+                {saveMessage}
+              </div>
+            )}
+            <form className="space-y-6" onSubmit={handleSave}>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">氏名</label>
-                <input type="text" className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="例: 田中 太郎" disabled />
+                <input
+                  type="text"
+                  name="name"
+                  value={form.name}
+                  onChange={handleChange}
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  placeholder="例: 田中 太郎"
+                />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">メールアドレス</label>
-                <input type="email" className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="例: example@mail.com" disabled />
+                <input
+                  type="email"
+                  name="email"
+                  value={form.email}
+                  onChange={handleChange}
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  placeholder="例: example@mail.com"
+                />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">パスワード</label>
-                <input type="password" className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="変更する場合のみ入力" disabled />
+                <input
+                  type="password"
+                  name="password"
+                  value={form.password}
+                  onChange={handleChange}
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  placeholder="変更する場合のみ入力"
+                />
               </div>
               <div className="flex justify-end">
-                <button type="button" className="bg-indigo-400 text-white px-6 py-2 rounded-md font-semibold cursor-not-allowed opacity-60" disabled>
-                  保存（未実装）
+                <button
+                  type="submit"
+                  className={`bg-indigo-600 text-white px-6 py-2 rounded-md font-semibold transition ${isSaving ? 'opacity-60 cursor-not-allowed' : ''}`}
+                  disabled={isSaving}
+                >
+                  {isSaving ? "保存中..." : "保存"}
                 </button>
               </div>
             </form>

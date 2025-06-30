@@ -1,6 +1,113 @@
+"use client";
 import { Briefcase, Save, Eye, User, Code, Projector, Cog, Plus, ArrowLeft, X } from 'lucide-react';
+import React, { useState, useRef } from 'react';
+
+type Project = { name: string; description: string; url: string };
+
+type FormState = {
+  name: string;
+  university: string;
+  grade: string;
+  email: string;
+  selfIntroduction: string;
+  skillTags: string[];
+  skillInput: string;
+  certifications: string;
+  projects: Project[];
+  projectInput: Project;
+  experience: {
+    internship: string;
+    extracurricular: string;
+    awards: string;
+  };
+  publication: {
+    isPublic: boolean;
+    autoDeleteAfterOneYear: boolean;
+  };
+};
+
+const initialForm: FormState = {
+  name: '',
+  university: '',
+  grade: '',
+  email: '',
+  selfIntroduction: '',
+  skillTags: [],
+  skillInput: '',
+  certifications: '',
+  projects: [],
+  projectInput: { name: '', description: '', url: '' },
+  experience: {
+    internship: '',
+    extracurricular: '',
+    awards: '',
+  },
+  publication: {
+    isPublic: false,
+    autoDeleteAfterOneYear: false,
+  },
+};
 
 const PortfolioCreatePage = () => {
+  const [form, setForm] = useState<FormState>(initialForm);
+  const skillInputRef = useRef<HTMLInputElement>(null);
+
+  // 基本情報
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value, type } = e.target;
+    if (name in form.experience) {
+      setForm((prev) => ({ ...prev, experience: { ...prev.experience, [name]: value } }));
+    } else if (name in form.publication) {
+      const checked = (e.target as HTMLInputElement).checked;
+      setForm((prev) => ({ ...prev, publication: { ...prev.publication, [name]: checked } }));
+    } else {
+      setForm((prev) => ({ ...prev, [name]: value }));
+    }
+  };
+
+  // スキルタグ
+  const handleSkillInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setForm((prev) => ({ ...prev, skillInput: e.target.value }));
+  };
+  const handleSkillInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && form.skillInput.trim()) {
+      e.preventDefault();
+      if (!form.skillTags.includes(form.skillInput.trim())) {
+        setForm((prev) => ({ ...prev, skillTags: [...prev.skillTags, prev.skillInput.trim()], skillInput: '' }));
+      } else {
+        setForm((prev) => ({ ...prev, skillInput: '' }));
+      }
+    }
+  };
+  const handleRemoveSkillTag = (idx: number) => {
+    setForm((prev) => ({ ...prev, skillTags: prev.skillTags.filter((_, i) => i !== idx) }));
+    setTimeout(() => skillInputRef.current?.focus(), 0);
+  };
+
+  // プロジェクト
+  const handleProjectChange = (idx: number, field: keyof Project, value: string) => {
+    setForm((prev) => {
+      const newProjects = prev.projects.map((p, i) =>
+        i === idx ? { ...p, [field]: value } : p
+      );
+      return { ...prev, projects: newProjects };
+    });
+  };
+  const handleAddProject = () => {
+    setForm((prev) => ({
+      ...prev,
+      projects: [...prev.projects, { ...prev.projectInput }],
+      projectInput: { name: '', description: '', url: '' },
+    }));
+  };
+  const handleRemoveProject = (idx: number) => {
+    setForm((prev) => ({ ...prev, projects: prev.projects.filter((_, i) => i !== idx) }));
+  };
+  const handleProjectInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setForm((prev) => ({ ...prev, projectInput: { ...prev.projectInput, [name]: value } }));
+  };
+
   return (
     <div className="bg-gray-50 min-h-screen">
       {/* Header */}
@@ -52,7 +159,7 @@ const PortfolioCreatePage = () => {
               </div>
             </div>
             {/* Form Sections */}
-            <form>
+            <form onSubmit={e => e.preventDefault()}>
               {/* 基本情報 */}
               <div className="section-card active p-6 rounded-lg mb-6 border-l-4 border-indigo-600 bg-slate-50">
                 <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
@@ -61,15 +168,15 @@ const PortfolioCreatePage = () => {
                 <div className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">お名前</label>
-                    <input type="text" className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent" placeholder="山田 太郎" disabled />
+                    <input type="text" name="name" className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent" placeholder="山田 太郎" value={form.name} onChange={handleChange} />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">大学・学部</label>
-                    <input type="text" className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent" placeholder="東京大学 工学部" disabled />
+                    <input type="text" name="university" className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent" placeholder="東京大学 工学部" value={form.university} onChange={handleChange} />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">学年</label>
-                    <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent" disabled>
+                    <select name="grade" className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent" value={form.grade} onChange={handleChange}>
                       <option value="">選択してください</option>
                       <option value="1年生">1年生</option>
                       <option value="2年生">2年生</option>
@@ -82,11 +189,11 @@ const PortfolioCreatePage = () => {
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">メールアドレス</label>
-                    <input type="email" className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent" placeholder="yamada@example.com" disabled />
+                    <input type="email" name="email" className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent" placeholder="yamada@example.com" value={form.email} onChange={handleChange} />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">自己紹介</label>
-                    <textarea rows={4} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent" placeholder="あなたの強みや興味のある分野について教えてください" disabled></textarea>
+                    <textarea name="selfIntroduction" rows={4} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent" placeholder="あなたの強みや興味のある分野について教えてください" value={form.selfIntroduction} onChange={handleChange}></textarea>
                   </div>
                 </div>
               </div>
@@ -99,13 +206,29 @@ const PortfolioCreatePage = () => {
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">スキルタグ</label>
                     <div className="flex flex-wrap gap-2 p-2 border border-gray-300 rounded-lg min-h-[42px]">
-                      <input type="text" placeholder="スキルを入力してEnterキーを押してください" className="flex-1 outline-none bg-transparent min-w-32" disabled />
+                      {form.skillTags.map((tag, idx) => (
+                        <span key={idx} className="bg-indigo-600 text-white px-3 py-1 rounded-full text-sm flex items-center">
+                          {tag}
+                          <button type="button" className="ml-1 hover:bg-indigo-800 rounded-full p-0.5" onClick={() => handleRemoveSkillTag(idx)} aria-label="タグ削除">
+                            <X className="w-3 h-3" />
+                          </button>
+                        </span>
+                      ))}
+                      <input
+                        type="text"
+                        ref={skillInputRef}
+                        value={form.skillInput}
+                        onChange={handleSkillInputChange}
+                        onKeyDown={handleSkillInputKeyDown}
+                        placeholder="スキルを入力してEnterキーを押してください"
+                        className="flex-1 outline-none bg-transparent min-w-32"
+                      />
                     </div>
                     <p className="text-sm text-gray-500 mt-1">例：JavaScript, React, Python, デザイン思考</p>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">資格・検定</label>
-                    <textarea rows={3} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent" placeholder="例：TOEIC 850点、基本情報技術者試験 合格" disabled></textarea>
+                    <textarea name="certifications" rows={3} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent" placeholder="例：TOEIC 850点、基本情報技術者試験 合格" value={form.certifications} onChange={handleChange}></textarea>
                   </div>
                 </div>
               </div>
@@ -115,22 +238,34 @@ const PortfolioCreatePage = () => {
                   <Projector className="w-5 h-5 mr-2 text-indigo-600" />プロジェクト・実績
                 </h3>
                 <div className="space-y-4">
+                  {form.projects.map((project, idx) => (
+                    <div key={idx} className="project-item border border-gray-200 rounded-lg p-4 mb-4">
+                      <div className="flex justify-between items-start mb-3">
+                        <h4 className="font-medium text-gray-800">プロジェクト #{idx + 1}</h4>
+                        <button type="button" className="text-red-500 hover:text-red-700" onClick={() => handleRemoveProject(idx)}>
+                          <X className="w-4 h-4" />
+                        </button>
+                      </div>
+                      <div className="space-y-3">
+                        <input type="text" name="name" placeholder="プロジェクト名" className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent" value={project.name} onChange={e => handleProjectChange(idx, 'name', e.target.value)} />
+                        <textarea name="description" placeholder="プロジェクトの説明、使用技術、成果など" rows={3} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent" value={project.description} onChange={e => handleProjectChange(idx, 'description', e.target.value)}></textarea>
+                        <input type="url" name="url" placeholder="プロジェクトURL（任意）" className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent" value={project.url || ''} onChange={e => handleProjectChange(idx, 'url', e.target.value)} />
+                      </div>
+                    </div>
+                  ))}
                   <div className="project-item border border-gray-200 rounded-lg p-4 mb-4">
                     <div className="flex justify-between items-start mb-3">
-                      <h4 className="font-medium text-gray-800">プロジェクト #1</h4>
-                      <button type="button" className="text-red-500 hover:text-red-700" disabled>
-                        <X className="w-4 h-4" />
-                      </button>
+                      <h4 className="font-medium text-gray-800">新規プロジェクト</h4>
                     </div>
                     <div className="space-y-3">
-                      <input type="text" placeholder="プロジェクト名" className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent" disabled />
-                      <textarea placeholder="プロジェクトの説明、使用技術、成果など" rows={3} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent" disabled></textarea>
-                      <input type="url" placeholder="プロジェクトURL（任意）" className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent" disabled />
+                      <input type="text" name="name" placeholder="プロジェクト名" className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent" value={form.projectInput.name} onChange={handleProjectInputChange} />
+                      <textarea name="description" placeholder="プロジェクトの説明、使用技術、成果など" rows={3} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent" value={form.projectInput.description} onChange={handleProjectInputChange}></textarea>
+                      <input type="url" name="url" placeholder="プロジェクトURL（任意）" className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent" value={form.projectInput.url} onChange={handleProjectInputChange} />
                     </div>
+                    <button type="button" className="w-full py-2 border-2 border-dashed border-indigo-400 rounded-lg text-indigo-600 flex items-center justify-center mt-2 hover:bg-indigo-50" onClick={handleAddProject}>
+                      <Plus className="w-5 h-5 mr-2" />プロジェクトを追加
+                    </button>
                   </div>
-                  <button type="button" className="w-full py-2 border-2 border-dashed border-gray-300 rounded-lg text-gray-500 flex items-center justify-center mt-2 cursor-not-allowed" disabled>
-                    <Plus className="w-5 h-5 mr-2" />プロジェクトを追加（未実装）
-                  </button>
                 </div>
               </div>
               {/* 経験・活動 */}
@@ -141,15 +276,15 @@ const PortfolioCreatePage = () => {
                 <div className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">インターンシップ経験</label>
-                    <textarea rows={3} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent" placeholder="インターンシップでの経験や学んだことを記載してください" disabled></textarea>
+                    <textarea name="internship" rows={3} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent" placeholder="インターンシップでの経験や学んだことを記載してください" value={form.experience.internship} onChange={handleChange}></textarea>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">課外活動・サークル</label>
-                    <textarea rows={3} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent" placeholder="サークル活動、ボランティア、アルバイトなど" disabled></textarea>
+                    <textarea name="extracurricular" rows={3} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent" placeholder="サークル活動、ボランティア、アルバイトなど" value={form.experience.extracurricular} onChange={handleChange}></textarea>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">受賞歴・表彰</label>
-                    <textarea rows={2} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent" placeholder="コンテスト受賞、学術表彰など" disabled></textarea>
+                    <textarea name="awards" rows={2} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent" placeholder="コンテスト受賞、学術表彰など" value={form.experience.awards} onChange={handleChange}></textarea>
                   </div>
                 </div>
               </div>
@@ -161,14 +296,14 @@ const PortfolioCreatePage = () => {
                 <div className="space-y-4">
                   <div>
                     <label className="flex items-center">
-                      <input type="checkbox" className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500" disabled />
+                      <input type="checkbox" name="isPublic" className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500" checked={form.publication.isPublic} onChange={handleChange} />
                       <span className="ml-2 text-sm text-gray-700">ポートフォリオを公開する</span>
                     </label>
                     <p className="text-sm text-gray-500 mt-1">公開すると他のユーザーがあなたのポートフォリオを閲覧できます</p>
                   </div>
                   <div>
                     <label className="flex items-center">
-                      <input type="checkbox" className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500" disabled />
+                      <input type="checkbox" name="autoDeleteAfterOneYear" className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500" checked={form.publication.autoDeleteAfterOneYear} onChange={handleChange} />
                       <span className="ml-2 text-sm text-gray-700">1年後に自動削除する</span>
                     </label>
                     <p className="text-sm text-gray-500 mt-1">チェックを外すと、手動で削除するまでポートフォリオが保持されます</p>
@@ -188,9 +323,9 @@ const PortfolioCreatePage = () => {
                   <div className="w-20 h-20 bg-white/20 rounded-full mx-auto mb-4 flex items-center justify-center">
                     <User className="w-10 h-10 text-white" />
                   </div>
-                  <h2 className="text-2xl font-bold mb-2">お名前を入力してください</h2>
-                  <p className="text-lg opacity-90">大学・学部を入力してください</p>
-                  <p className="text-sm opacity-75"></p>
+                  <h2 className="text-2xl font-bold mb-2">{form.name || 'お名前を入力してください'}</h2>
+                  <p className="text-lg opacity-90">{form.university || '大学・学部を入力してください'}</p>
+                  <p className="text-sm opacity-75">{form.grade}</p>
                 </div>
               </div>
               {/* Preview Content */}
@@ -200,7 +335,7 @@ const PortfolioCreatePage = () => {
                   <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center">
                     <User className="w-5 h-5 mr-2 text-indigo-600" />自己紹介
                   </h3>
-                  <p className="text-gray-700">自己紹介を入力してください</p>
+                  <p className="text-gray-700">{form.selfIntroduction || '自己紹介を入力してください'}</p>
                 </div>
                 {/* Skills */}
                 <div className="mb-6">
@@ -208,7 +343,13 @@ const PortfolioCreatePage = () => {
                     <Code className="w-5 h-5 mr-2 text-indigo-600" />スキル
                   </h3>
                   <div className="flex flex-wrap gap-2 mb-3">
-                    <span className="px-3 py-1 bg-gray-100 text-gray-500 rounded-full text-sm">スキルを追加してください</span>
+                    {form.skillTags.length === 0 ? (
+                      <span className="px-3 py-1 bg-gray-100 text-gray-500 rounded-full text-sm">スキルを追加してください</span>
+                    ) : (
+                      form.skillTags.map((tag, idx) => (
+                        <span key={idx} className="px-3 py-1 bg-indigo-100 text-indigo-700 rounded-full text-sm">{tag}</span>
+                      ))
+                    )}
                   </div>
                 </div>
                 {/* Certifications */}
@@ -216,7 +357,7 @@ const PortfolioCreatePage = () => {
                   <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center">
                     <Code className="w-5 h-5 mr-2 text-indigo-600" />資格・検定
                   </h3>
-                  <p className="text-gray-700"></p>
+                  <p className="text-gray-700">{form.certifications}</p>
                 </div>
                 {/* Projects */}
                 <div className="mb-6">
@@ -224,7 +365,17 @@ const PortfolioCreatePage = () => {
                     <Projector className="w-5 h-5 mr-2 text-indigo-600" />プロジェクト
                   </h3>
                   <div>
-                    <span className="px-3 py-1 bg-gray-100 text-gray-500 rounded-full text-sm">プロジェクトを追加してください</span>
+                    {form.projects.length === 0 ? (
+                      <span className="px-3 py-1 bg-gray-100 text-gray-500 rounded-full text-sm">プロジェクトを追加してください</span>
+                    ) : (
+                      form.projects.map((project, idx) => (
+                        <div key={idx} className="mb-2">
+                          <div className="font-semibold text-indigo-700">{project.name}</div>
+                          <div className="text-gray-700 text-sm">{project.description}</div>
+                          {project.url && <a href={project.url} className="text-indigo-500 text-xs underline" target="_blank" rel="noopener noreferrer">{project.url}</a>}
+                        </div>
+                      ))
+                    )}
                   </div>
                 </div>
                 {/* Contact */}
@@ -232,7 +383,7 @@ const PortfolioCreatePage = () => {
                   <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center">
                     <User className="w-5 h-5 mr-2 text-indigo-600" />連絡先
                   </h3>
-                  <p className="text-gray-700">メールアドレスを入力してください</p>
+                  <p className="text-gray-700">{form.email || 'メールアドレスを入力してください'}</p>
                 </div>
               </div>
             </div>
@@ -241,7 +392,7 @@ const PortfolioCreatePage = () => {
       </div>
       {/* Floating Action Button */}
       <div className="fixed bottom-5 right-5 z-50">
-        <button className="bg-indigo-600 text-white p-4 rounded-full shadow-lg hover:bg-indigo-700 transition hover:scale-105 flex items-center" disabled>
+        <button className="bg-indigo-600 text-white p-4 rounded-full shadow-lg hover:bg-indigo-700 transition hover:scale-105 flex items-center">
           <Save className="w-6 h-6" />
         </button>
       </div>
