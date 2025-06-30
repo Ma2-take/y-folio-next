@@ -16,7 +16,7 @@ export default function NavBar() {
                     </div>
                     <div className="hidden md:flex space-x-6">
                         <Link href="/#features" className="text-gray-600 hover:text-indigo-600 transition">機能</Link>
-                        <Link href="/portfolio-list" className="text-gray-600 hover:text-indigo-600 transition">ポートフォリオ一覧</Link>
+                        <Link href="/portfolio/list" className="text-gray-600 hover:text-indigo-600 transition">ポートフォリオ一覧</Link>
                         <Link href="/tags" className="text-gray-600 hover:text-indigo-600 transition">タグ一覧</Link>
                         <Link href="/dashboard" className="text-gray-600 hover:text-indigo-600 transition">ダッシュボード</Link>
                     </div>
