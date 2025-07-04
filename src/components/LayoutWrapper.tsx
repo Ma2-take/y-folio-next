@@ -6,7 +6,7 @@ import React from 'react';
 
 const LayoutWrapper = ({ children }: { children: React.ReactNode }) => {
     const pathname = usePathname();
-    const isNavHidden = pathname.startsWith('/admin') || pathname.startsWith('/dashboard') || pathname.startsWith('/recruiter');
+    const isNavHidden = pathname.startsWith('/admin') || pathname.startsWith('/dashboard') || pathname.startsWith('/recruiter') || pathname === '/portfolio';
 
     return (
         <>
