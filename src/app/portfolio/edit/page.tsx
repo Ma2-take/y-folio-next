@@ -35,6 +35,12 @@ interface Experience {
   awards: string;
 }
 
+// その他（自由記述欄）の型定義
+interface Other {
+  customQuestions: string;
+  additionalInfo: string;
+}
+
 // 公開設定の型定義
 interface PublicationSettings {
   isPublic: boolean;
@@ -49,6 +55,7 @@ interface Portfolio {
   skills: Skills;
   projects: Project[];
   experience: Experience;
+  other: Other;
   publicationSettings: PublicationSettings;
   createdAt: string;
   updatedAt: string;
@@ -60,6 +67,7 @@ interface PortfolioFormState {
   skills: Skills;
   projects: Project[];
   experience: Experience;
+  other: Other;
   publicationSettings: PublicationSettings;
   isDirty: boolean;
   isSubmitting: boolean;
@@ -96,6 +104,10 @@ const initialForm: PortfolioFormState = {
     internship: '株式会社サンプルでAI開発インターンを経験。実務での開発フローを学びました。',
     extracurricular: 'プログラミングサークル所属。ハッカソン参加経験あり。',
     awards: '2024年 学生ハッカソン最優秀賞',
+  },
+  other: {
+    customQuestions: '当社のサービスについて知っていることを教えてください。また、あなたの強みを活かせる職種は何だと思いますか？',
+    additionalInfo: 'プログラミングコンテストでの受賞経験があり、チーム開発でのリーダーシップを発揮した経験があります。',
   },
   publicationSettings: {
     isPublic: true,
@@ -191,6 +203,19 @@ const PortfolioEditPage = () => {
       ...prev,
       experience: {
         ...prev.experience,
+        [name]: value,
+      },
+      isDirty: true,
+    }));
+  };
+
+  // その他（自由記述欄）
+  const handleOtherChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setForm((prev) => ({
+      ...prev,
+      other: {
+        ...prev.other,
         [name]: value,
       },
       isDirty: true,
@@ -381,6 +406,39 @@ const PortfolioEditPage = () => {
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">受賞歴・表彰</label>
                 <textarea name="awards" rows={2} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent" placeholder="コンテスト受賞、学術表彰など" value={form.experience.awards} onChange={handleExperienceChange}></textarea>
+              </div>
+            </div>
+          </div>
+
+          {/* その他（自由記述欄） */}
+          <div className="section-card p-6 rounded-lg mb-6">
+            <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+              <Plus className="w-5 h-5 mr-2 text-indigo-600" />その他（自由記述欄）
+            </h3>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">企業のオリジナル設問</label>
+                <textarea 
+                  name="customQuestions" 
+                  rows={4} 
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent" 
+                  placeholder="企業が設定したオリジナル設問があれば、ここに回答を記載してください。例：「当社のサービスについて知っていることを教えてください」「あなたの強みを活かせる職種は何だと思いますか？」" 
+                  value={form.other.customQuestions} 
+                  onChange={handleOtherChange}
+                ></textarea>
+                <p className="text-sm text-gray-500 mt-1">企業が設定したオリジナル設問への回答を記載してください</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">その他の追加情報</label>
+                <textarea 
+                  name="additionalInfo" 
+                  rows={3} 
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent" 
+                  placeholder="その他、アピールしたい情報や企業に伝えたいことがあれば記載してください" 
+                  value={form.other.additionalInfo} 
+                  onChange={handleOtherChange}
+                ></textarea>
+                <p className="text-sm text-gray-500 mt-1">その他、アピールしたい情報や企業に伝えたいことがあれば記載してください</p>
               </div>
             </div>
           </div>

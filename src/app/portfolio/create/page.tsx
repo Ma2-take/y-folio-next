@@ -20,6 +20,10 @@ type FormState = {
     extracurricular: string;
     awards: string;
   };
+  other: {
+    customQuestions: string;
+    additionalInfo: string;
+  };
   publication: {
     isPublic: boolean;
     autoDeleteAfterOneYear: boolean;
@@ -42,6 +46,10 @@ const initialForm: FormState = {
     extracurricular: '',
     awards: '',
   },
+  other: {
+    customQuestions: '',
+    additionalInfo: '',
+  },
   publication: {
     isPublic: false,
     autoDeleteAfterOneYear: false,
@@ -57,6 +65,8 @@ const PortfolioCreatePage = () => {
     const { name, value, type } = e.target;
     if (name in form.experience) {
       setForm((prev) => ({ ...prev, experience: { ...prev.experience, [name]: value } }));
+    } else if (name in form.other) {
+      setForm((prev) => ({ ...prev, other: { ...prev.other, [name]: value } }));
     } else if (name in form.publication) {
       const checked = (e.target as HTMLInputElement).checked;
       setForm((prev) => ({ ...prev, publication: { ...prev.publication, [name]: checked } }));
@@ -288,6 +298,38 @@ const PortfolioCreatePage = () => {
                   </div>
                 </div>
               </div>
+              {/* その他（自由記述欄） */}
+              <div className="section-card p-6 rounded-lg mb-6">
+                <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                  <Plus className="w-5 h-5 mr-2 text-indigo-600" />その他（自由記述欄）
+                </h3>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">企業のオリジナル設問</label>
+                    <textarea 
+                      name="customQuestions" 
+                      rows={4} 
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent" 
+                      placeholder="企業が設定したオリジナル設問があれば、ここに回答を記載してください。例：「当社のサービスについて知っていることを教えてください」「あなたの強みを活かせる職種は何だと思いますか？」" 
+                      value={form.other.customQuestions} 
+                      onChange={handleChange}
+                    ></textarea>
+                    <p className="text-sm text-gray-500 mt-1">企業が設定したオリジナル設問への回答を記載してください</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">その他の追加情報</label>
+                    <textarea 
+                      name="additionalInfo" 
+                      rows={3} 
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent" 
+                      placeholder="その他、アピールしたい情報や企業に伝えたいことがあれば記載してください" 
+                      value={form.other.additionalInfo} 
+                      onChange={handleChange}
+                    ></textarea>
+                    <p className="text-sm text-gray-500 mt-1">その他、アピールしたい情報や企業に伝えたいことがあれば記載してください</p>
+                  </div>
+                </div>
+              </div>
               {/* 公開設定 */}
               <div className="section-card p-6 rounded-lg mb-6">
                 <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
@@ -385,6 +427,26 @@ const PortfolioCreatePage = () => {
                   </h3>
                   <p className="text-gray-700">{form.email || 'メールアドレスを入力してください'}</p>
                 </div>
+                {/* Other Information */}
+                {(form.other.customQuestions || form.other.additionalInfo) && (
+                  <div className="mb-6">
+                    <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center">
+                      <Plus className="w-5 h-5 mr-2 text-indigo-600" />その他
+                    </h3>
+                    {form.other.customQuestions && (
+                      <div className="mb-4">
+                        <h4 className="font-medium text-gray-700 mb-2">企業のオリジナル設問</h4>
+                        <p className="text-gray-700 whitespace-pre-wrap">{form.other.customQuestions}</p>
+                      </div>
+                    )}
+                    {form.other.additionalInfo && (
+                      <div className="mb-4">
+                        <h4 className="font-medium text-gray-700 mb-2">その他の追加情報</h4>
+                        <p className="text-gray-700 whitespace-pre-wrap">{form.other.additionalInfo}</p>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           </div>
