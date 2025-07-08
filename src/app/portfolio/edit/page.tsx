@@ -482,8 +482,8 @@ const PortfolioEditPage = () => {
           </div>
           {/* Right: Preview */}
           <div className="w-1/2 bg-gray-50">
-            <div className="preview-section p-6 max-h-[calc(100vh-120px)] overflow-y-auto">
-              <div className="bg-white rounded-lg shadow-md overflow-hidden">
+            <div className="preview-section p-6">
+              <div className="bg-white rounded-lg shadow-md overflow-hidden sticky top-8" style={{ maxHeight: 'calc(100vh - 64px)', overflowY: 'auto' }}>
                 {/* Preview Header */}
                 <div className="bg-gradient-to-br from-indigo-500 to-purple-500 text-white p-8">
                   <div className="text-center">
