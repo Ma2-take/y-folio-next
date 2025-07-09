@@ -76,30 +76,6 @@ const DashboardPage = () => {
       action: () => {}
     },
     {
-      name: 'Twitter',
-      icon: Twitter,
-      color: 'text-blue-400',
-      bgColor: 'bg-blue-50',
-      hoverBg: 'hover:bg-blue-100',
-      action: () => {}
-    },
-    {
-      name: 'Facebook',
-      icon: Facebook,
-      color: 'text-blue-600',
-      bgColor: 'bg-blue-50',
-      hoverBg: 'hover:bg-blue-100',
-      action: () => {}
-    },
-    {
-      name: 'LinkedIn',
-      icon: Linkedin,
-      color: 'text-blue-700',
-      bgColor: 'bg-blue-50',
-      hoverBg: 'hover:bg-blue-100',
-      action: () => {}
-    },
-    {
       name: 'QRコード',
       icon: Link,
       color: 'text-purple-600',
