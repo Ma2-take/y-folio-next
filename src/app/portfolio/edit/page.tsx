@@ -1,5 +1,5 @@
 "use client";
-import { Briefcase, ArrowLeft, Save, User, Code, Projector, Cog, Plus, X } from 'lucide-react';
+import { Briefcase, ArrowLeft, Save, User, Code, Projector, Cog, Plus, X, Eye, EyeOff } from 'lucide-react';
 import React, { useState, useRef } from 'react';
 
 // ===== データ設計（案1: シンプル分離型） =====
@@ -11,6 +11,8 @@ interface BasicInfo {
   grade: string;
   birthDate: string;
   email: string;
+  phone: string; // 電話番号
+  address: string; // 所在地
   selfIntroduction: string;
 }
 
@@ -47,6 +49,17 @@ interface PublicationSettings {
   autoDeleteAfterOneYear: boolean;
 }
 
+// 可視性設定の型定義
+interface VisibilitySettings {
+  basicInfo: boolean;
+  phone: boolean; // 電話番号の可視性
+  address: boolean; // 所在地の可視性
+  skills: boolean;
+  projects: boolean;
+  experience: boolean;
+  other: boolean;
+}
+
 // ポートフォリオ全体の型定義
 interface Portfolio {
   id: string;
@@ -57,6 +70,7 @@ interface Portfolio {
   experience: Experience;
   other: Other;
   publicationSettings: PublicationSettings;
+  visibilitySettings: VisibilitySettings;
   createdAt: string;
   updatedAt: string;
 }
@@ -69,6 +83,7 @@ interface PortfolioFormState {
   experience: Experience;
   other: Other;
   publicationSettings: PublicationSettings;
+  visibilitySettings: VisibilitySettings;
   isDirty: boolean;
   isSubmitting: boolean;
 }
@@ -80,6 +95,8 @@ const initialForm: PortfolioFormState = {
     grade: '4年生',
     birthDate: '2000-01-01',
     email: 'tanaka@example.com',
+    phone: '090-1234-5678',
+    address: '東京都新宿区',
     selfIntroduction: 'Web開発とAI技術に興味があり、複数のプロジェクトを手がけています。',
   },
   skills: {
@@ -113,6 +130,15 @@ const initialForm: PortfolioFormState = {
     isPublic: true,
     autoDeleteAfterOneYear: false,
   },
+  visibilitySettings: {
+    basicInfo: true,
+    phone: false,
+    address: false,
+    skills: true,
+    projects: true,
+    experience: true,
+    other: true,
+  },
   isDirty: false,
   isSubmitting: false,
 };
@@ -134,6 +160,18 @@ const PortfolioEditPage = () => {
       basicInfo: {
         ...prev.basicInfo,
         [name]: value,
+      },
+      isDirty: true,
+    }));
+  };
+
+  // 可視性設定の変更
+  const handleVisibilityChange = (section: keyof VisibilitySettings) => {
+    setForm((prev) => ({
+      ...prev,
+      visibilitySettings: {
+        ...prev.visibilitySettings,
+        [section]: !prev.visibilitySettings[section],
       },
       isDirty: true,
     }));
@@ -235,6 +273,31 @@ const PortfolioEditPage = () => {
     }));
   };
 
+  // 可視性トグルコンポーネント
+  const VisibilityToggle = ({ section, isVisible, onChange }: { section: string; isVisible: boolean; onChange: () => void }) => (
+    <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center">
+        {isVisible ? <Eye className="w-4 h-4 text-green-600 mr-2" /> : <EyeOff className="w-4 h-4 text-gray-400 mr-2" />}
+        <span className="text-sm font-medium text-gray-700">
+          {isVisible ? '公開' : '非公開'}
+        </span>
+      </div>
+      <button
+        type="button"
+        onClick={onChange}
+        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 ${
+          isVisible ? 'bg-indigo-600' : 'bg-gray-200'
+        }`}
+      >
+        <span
+          className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+            isVisible ? 'translate-x-6' : 'translate-x-1'
+          }`}
+        />
+      </button>
+    </div>
+  );
+
   // 保存処理
   const handleSave = async () => {
     setIsSaving(true);
@@ -299,9 +362,16 @@ const PortfolioEditPage = () => {
               )}
               {/* 基本情報 */}
               <div className="section-card active p-6 rounded-lg mb-6 border-l-4 border-indigo-600 bg-slate-50">
-                <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
-                  <User className="w-5 h-5 mr-2 text-indigo-600" />基本情報
-                </h3>
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold text-gray-800 flex items-center">
+                    <User className="w-5 h-5 mr-2 text-indigo-600" />基本情報
+                  </h3>
+                  <VisibilityToggle
+                    section="basicInfo"
+                    isVisible={form.visibilitySettings.basicInfo}
+                    onChange={() => handleVisibilityChange('basicInfo')}
+                  />
+                </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">お名前</label>
@@ -332,6 +402,28 @@ const PortfolioEditPage = () => {
                     <label className="block text-sm font-medium text-gray-700 mb-2">メールアドレス</label>
                     <input type="email" name="email" className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent" placeholder="yamada@example.com" value={form.basicInfo.email} onChange={handleBasicInfoChange} />
                   </div>
+                  <div className="flex items-center gap-2">
+                    <div className="flex-1">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">電話番号</label>
+                      <input type="tel" name="phone" className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent" placeholder="090-1234-5678" value={form.basicInfo.phone} onChange={handleBasicInfoChange} />
+                    </div>
+                    <VisibilityToggle
+                      section="phone"
+                      isVisible={form.visibilitySettings.phone}
+                      onChange={() => handleVisibilityChange('phone')}
+                    />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="flex-1">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">所在地</label>
+                      <input type="text" name="address" className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent" placeholder="東京都新宿区" value={form.basicInfo.address} onChange={handleBasicInfoChange} />
+                    </div>
+                    <VisibilityToggle
+                      section="address"
+                      isVisible={form.visibilitySettings.address}
+                      onChange={() => handleVisibilityChange('address')}
+                    />
+                  </div>
                 </div>
                 <div className="mt-4">
                   <label className="block text-sm font-medium text-gray-700 mb-2">自己紹介</label>
@@ -341,9 +433,16 @@ const PortfolioEditPage = () => {
 
               {/* スキル・技術 */}
               <div className="section-card p-6 rounded-lg mb-6">
-                <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
-                  <Code className="w-5 h-5 mr-2 text-indigo-600" />スキル・技術
-                </h3>
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold text-gray-800 flex items-center">
+                    <Code className="w-5 h-5 mr-2 text-indigo-600" />スキル・技術
+                  </h3>
+                  <VisibilityToggle
+                    section="skills"
+                    isVisible={form.visibilitySettings.skills}
+                    onChange={() => handleVisibilityChange('skills')}
+                  />
+                </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">スキルタグ</label>
                   <div className="flex flex-wrap gap-2 p-2 border border-gray-300 rounded-lg min-h-[42px]">
@@ -375,9 +474,16 @@ const PortfolioEditPage = () => {
 
               {/* プロジェクト・実績 */}
               <div className="section-card p-6 rounded-lg mb-6">
-                <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
-                  <Projector className="w-5 h-5 mr-2 text-indigo-600" />プロジェクト・実績
-                </h3>
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold text-gray-800 flex items-center">
+                    <Projector className="w-5 h-5 mr-2 text-indigo-600" />プロジェクト・実績
+                  </h3>
+                  <VisibilityToggle
+                    section="projects"
+                    isVisible={form.visibilitySettings.projects}
+                    onChange={() => handleVisibilityChange('projects')}
+                  />
+                </div>
                 <div className="space-y-4">
                   {form.projects.map((project, idx) => (
                     <div key={project.id} className="border border-gray-200 rounded-lg p-4">
@@ -394,9 +500,16 @@ const PortfolioEditPage = () => {
 
               {/* 経験・活動 */}
               <div className="section-card p-6 rounded-lg mb-6">
-                <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
-                  <Briefcase className="w-5 h-5 mr-2 text-indigo-600" />経験・活動
-                </h3>
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold text-gray-800 flex items-center">
+                    <Briefcase className="w-5 h-5 mr-2 text-indigo-600" />経験・活動
+                  </h3>
+                  <VisibilityToggle
+                    section="experience"
+                    isVisible={form.visibilitySettings.experience}
+                    onChange={() => handleVisibilityChange('experience')}
+                  />
+                </div>
                 <div className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">インターンシップ経験</label>
@@ -415,9 +528,16 @@ const PortfolioEditPage = () => {
 
               {/* その他（自由記述欄） */}
               <div className="section-card p-6 rounded-lg mb-6">
-                <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
-                  <Plus className="w-5 h-5 mr-2 text-indigo-600" />その他（自由記述欄）
-                </h3>
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold text-gray-800 flex items-center">
+                    <Plus className="w-5 h-5 mr-2 text-indigo-600" />その他（自由記述欄）
+                  </h3>
+                  <VisibilityToggle
+                    section="other"
+                    isVisible={form.visibilitySettings.other}
+                    onChange={() => handleVisibilityChange('other')}
+                  />
+                </div>
                 <div className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">企業のオリジナル設問</label>
@@ -498,55 +618,79 @@ const PortfolioEditPage = () => {
                 {/* Preview Content */}
                 <div className="p-6">
                   {/* Introduction */}
-                  <div className="mb-6">
-                    <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center">
-                      <User className="w-5 h-5 mr-2 text-indigo-600" />自己紹介
-                    </h3>
-                    <p className="text-gray-700">{form.basicInfo.selfIntroduction || '自己紹介を入力してください'}</p>
-                  </div>
+                  {form.visibilitySettings.basicInfo && (
+                    <div className="mb-6">
+                      <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center">
+                        <User className="w-5 h-5 mr-2 text-indigo-600" />自己紹介
+                      </h3>
+                      <p className="text-gray-700">{form.basicInfo.selfIntroduction || '自己紹介を入力してください'}</p>
+                    </div>
+                  )}
+                  {form.visibilitySettings.phone && (
+                    <div className="mb-6">
+                      <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center">
+                        <User className="w-5 h-5 mr-2 text-indigo-600" />電話番号
+                      </h3>
+                      <p className="text-gray-700">{form.basicInfo.phone || '電話番号を入力してください'}</p>
+                    </div>
+                  )}
+                  {form.visibilitySettings.address && (
+                    <div className="mb-6">
+                      <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center">
+                        <User className="w-5 h-5 mr-2 text-indigo-600" />所在地
+                      </h3>
+                      <p className="text-gray-700">{form.basicInfo.address || '所在地を入力してください'}</p>
+                    </div>
+                  )}
                   {/* Skills */}
-                  <div className="mb-6">
-                    <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center">
-                      <Code className="w-5 h-5 mr-2 text-indigo-600" />スキル
-                    </h3>
-                    <div className="flex flex-wrap gap-2 mb-3">
-                      {form.skills.skillTags.length === 0 ? (
-                        <span className="px-3 py-1 bg-gray-100 text-gray-500 rounded-full text-sm">スキルを追加してください</span>
-                      ) : (
-                        form.skills.skillTags.map((tag, idx) => (
-                          <span key={idx} className="px-3 py-1 bg-indigo-100 text-indigo-700 rounded-full text-sm">{tag}</span>
-                        ))
-                      )}
+                  {form.visibilitySettings.skills && (
+                    <div className="mb-6">
+                      <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center">
+                        <Code className="w-5 h-5 mr-2 text-indigo-600" />スキル
+                      </h3>
+                      <div className="flex flex-wrap gap-2 mb-3">
+                        {form.skills.skillTags.length === 0 ? (
+                          <span className="px-3 py-1 bg-gray-100 text-gray-500 rounded-full text-sm">スキルを追加してください</span>
+                        ) : (
+                          form.skills.skillTags.map((tag, idx) => (
+                            <span key={idx} className="px-3 py-1 bg-indigo-100 text-indigo-700 rounded-full text-sm">{tag}</span>
+                          ))
+                        )}
+                      </div>
                     </div>
-                  </div>
+                  )}
                   {/* Certifications */}
-                  <div className="mb-6">
-                    <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center">
-                      <Code className="w-5 h-5 mr-2 text-indigo-600" />資格・検定
-                    </h3>
-                    <p className="text-gray-700">{form.skills.certifications}</p>
-                  </div>
-                  {/* Projects */}
-                  <div className="mb-6">
-                    <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center">
-                      <Projector className="w-5 h-5 mr-2 text-indigo-600" />プロジェクト
-                    </h3>
-                    <div>
-                      {form.projects.length === 0 ? (
-                        <span className="px-3 py-1 bg-gray-100 text-gray-500 rounded-full text-sm">プロジェクトを追加してください</span>
-                      ) : (
-                        form.projects.map((project, idx) => (
-                          <div key={project.id} className="mb-2">
-                            <div className="font-semibold text-indigo-700">{project.name}</div>
-                            <div className="text-gray-700 text-sm">{project.description}</div>
-                            {project.url && <a href={project.url} className="text-indigo-500 text-xs underline" target="_blank" rel="noopener noreferrer">{project.url}</a>}
-                          </div>
-                        ))
-                      )}
+                  {form.visibilitySettings.skills && (
+                    <div className="mb-6">
+                      <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center">
+                        <Code className="w-5 h-5 mr-2 text-indigo-600" />資格・検定
+                      </h3>
+                      <p className="text-gray-700">{form.skills.certifications}</p>
                     </div>
-                  </div>
+                  )}
+                  {/* Projects */}
+                  {form.visibilitySettings.projects && (
+                    <div className="mb-6">
+                      <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center">
+                        <Projector className="w-5 h-5 mr-2 text-indigo-600" />プロジェクト
+                      </h3>
+                      <div>
+                        {form.projects.length === 0 ? (
+                          <span className="px-3 py-1 bg-gray-100 text-gray-500 rounded-full text-sm">プロジェクトを追加してください</span>
+                        ) : (
+                          form.projects.map((project, idx) => (
+                            <div key={project.id} className="mb-2">
+                              <div className="font-semibold text-indigo-700">{project.name}</div>
+                              <div className="text-gray-700 text-sm">{project.description}</div>
+                              {project.url && <a href={project.url} className="text-indigo-500 text-xs underline" target="_blank" rel="noopener noreferrer">{project.url}</a>}
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    </div>
+                  )}
                   {/* Experience & Activities */}
-                  {(form.experience.internship || form.experience.extracurricular || form.experience.awards) && (
+                  {form.visibilitySettings.experience && (form.experience.internship || form.experience.extracurricular || form.experience.awards) && (
                     <div className="mb-6">
                       <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center">
                         <Briefcase className="w-5 h-5 mr-2 text-indigo-600" />経験・活動
@@ -572,14 +716,16 @@ const PortfolioEditPage = () => {
                     </div>
                   )}
                   {/* Contact */}
-                  <div className="mb-6">
-                    <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center">
-                      <User className="w-5 h-5 mr-2 text-indigo-600" />連絡先
-                    </h3>
-                    <p className="text-gray-700">{form.basicInfo.email || 'メールアドレスを入力してください'}</p>
-                  </div>
+                  {form.visibilitySettings.basicInfo && (
+                    <div className="mb-6">
+                      <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center">
+                        <User className="w-5 h-5 mr-2 text-indigo-600" />連絡先
+                      </h3>
+                      <p className="text-gray-700">{form.basicInfo.email || 'メールアドレスを入力してください'}</p>
+                    </div>
+                  )}
                   {/* Other Information */}
-                  {(form.other.customQuestions || form.other.additionalInfo) && (
+                  {form.visibilitySettings.other && (form.other.customQuestions || form.other.additionalInfo) && (
                     <div className="mb-6">
                       <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center">
                         <Plus className="w-5 h-5 mr-2 text-indigo-600" />その他
