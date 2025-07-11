@@ -51,7 +51,10 @@ const DashboardPage = () => {
         <main className="p-6">
           <StatsCard />
 
-          <PortfolioPreview handleShareClick={handleShareClick} handlePdfPreview={handlePdfPreview} />
+          <PortfolioPreview
+            handleShareClick={handleShareClick}
+            handlePdfPreview={handlePdfPreview}
+          />
 
           <Analytics />
         </main>
