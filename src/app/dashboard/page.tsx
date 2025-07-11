@@ -52,6 +52,7 @@ const DashboardPage = () => {
           <StatsCard />
 
           <PortfolioPreview
+            user={testUser}
             handleShareClick={handleShareClick}
             handlePdfPreview={handlePdfPreview}
           />

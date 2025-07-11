@@ -17,6 +17,7 @@ type SidebarProps = {
 };
 
 const Sidebar = ({ onShareClick }: SidebarProps) => {
+    const user = testUser;
     return (
         <aside className="fixed inset-y-0 left-0 w-64 bg-white shadow-lg z-50 flex flex-col">
             <div className="flex items-center justify-center h-16 border-b border-gray-200 shrink-0">
@@ -30,14 +31,14 @@ const Sidebar = ({ onShareClick }: SidebarProps) => {
                 <div className="px-4 mb-4">
                     <div className="flex items-center">
                         <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold">
-                            {testUser.name[0]}
+                            {user.name[0]}
                         </div>
                         <div className="ml-3">
                             <p className="text-sm font-medium text-gray-700">
-                                {testUser.name}
+                                {user.name}
                             </p>
                             <p className="text-xs text-gray-500">
-                                {testUser.university}・{testUser.grade}
+                                {user.university}・{user.grade}年
                             </p>
                         </div>
                     </div>
