@@ -1,60 +1,99 @@
 "use client";
-import { useState } from "react";
-import { Mic, MicOff, ArrowLeft, ArrowRight } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
 
 interface Question {
   id: number;
   question: string;
 }
 
+type HistoryItem = { type: 'question' | 'answer'; text: string };
+
 export default function InterviewSession({ onFinish, questions }: { onFinish: () => void; questions: Question[] }) {
-  const [index, setIndex] = useState(0);
+  const [current, setCurrent] = useState(0);
   const [answer, setAnswer] = useState("");
-  const [isRecording, setIsRecording] = useState(false);
+  const [history, setHistory] = useState<HistoryItem[]>(
+    questions[0] ? [{ type: 'question', text: questions[0].question }] : []
+  );
+  // 回答履歴のref配列
+  const answerRefs = useRef<(HTMLDivElement | null)[]>([]);
 
-  if (!questions || questions.length === 0) {
-    return <div className="text-center text-gray-500">質問がありません</div>;
-  }
+  // 回答送信
+  const handleSend = () => {
+    if (!answer.trim()) return;
+    const newHistory: HistoryItem[] = [...history, { type: 'answer', text: answer }];
+    if (current < questions.length - 1) {
+      newHistory.push({ type: 'question', text: questions[current + 1].question });
+      setCurrent(current + 1);
+      setAnswer("");
+      setHistory(newHistory);
+    } else {
+      setHistory([...newHistory, { type: 'question', text: "面接は終了です。お疲れさまでした！" }]);
+      setAnswer("");
+      setTimeout(onFinish, 2000);
+    }
+  };
 
+  // 履歴クリックで該当回答にスクロール
+  const handleHistoryClick = (idx: number) => {
+    answerRefs.current[idx]?.scrollIntoView({ behavior: "smooth", block: "center" });
+  };
+
+  // チャット本体の幅を調整し、履歴サイドバーを追加
   return (
-    <div className="max-w-lg mx-auto bg-white rounded-lg shadow p-8 mt-10">
-      <h3 className="text-lg font-semibold mb-4 text-blue-700">質問 {index + 1} / {questions.length}</h3>
-      <p className="mb-6 text-gray-800">{questions[index].question}</p>
-      <textarea
-        className="w-full p-3 border rounded-lg mb-4 focus:outline-blue-400"
-        rows={4}
-        value={answer}
-        onChange={e => setAnswer(e.target.value)}
-        placeholder="回答を入力してください"
-      />
-      <div className="flex gap-2 mb-4">
-        <button
-          className={`flex items-center gap-2 px-4 py-2 rounded-lg ${isRecording ? 'bg-red-600 text-white' : 'bg-gray-200 text-gray-800 hover:bg-gray-300'}`}
-          onClick={() => setIsRecording(r => !r)}
-        >
-          {isRecording ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
-          {isRecording ? '録音停止' : '録音開始'}
-        </button>
-        <button
-          className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 disabled:opacity-50"
-          onClick={() => setIndex(i => Math.max(0, i - 1))}
-          disabled={index === 0}
-        >
-          <ArrowLeft className="w-4 h-4 mr-1" />前の質問
-        </button>
-        <button
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center"
-          onClick={() => {
-            if (index < questions.length - 1) {
-              setIndex(i => i + 1);
-              setAnswer("");
-            } else {
-              onFinish();
-            }
-          }}
-        >
-          {index < questions.length - 1 ? <>次の質問<ArrowRight className="w-4 h-4 ml-1" /></> : '面接を終了'}
-        </button>
+    <div className="max-w-4xl mx-auto bg-white rounded-lg shadow p-16 mt-10 flex flex-row h-[80vh]">
+      {/* 履歴サイドバー */}
+      <div className="w-64 pr-8 border-r flex flex-col">
+        <h3 className="text-lg font-bold mb-4 text-blue-700">回答履歴</h3>
+        <div className="flex-1 overflow-y-auto space-y-2">
+          {history
+            .map((item, idx) => ({ ...item, idx }))
+            .filter(item => item.type === 'answer')
+            .map((item, i) => (
+              <button
+                key={i}
+                className="w-full text-left px-3 py-2 rounded hover:bg-blue-50 border border-transparent hover:border-blue-300 text-gray-800 truncate"
+                onClick={() => handleHistoryClick(item.idx)}
+              >
+                {item.text}
+              </button>
+            ))}
+        </div>
+      </div>
+      {/* チャット本体 */}
+      <div className="flex-1 flex flex-col h-full pl-8">
+        <div className="flex-1 overflow-y-auto mb-4 space-y-4">
+          {history.map((item, idx) => (
+            <div
+              key={idx}
+              ref={el => {
+                if (item.type === 'answer') answerRefs.current[idx] = el;
+              }}
+              className={`flex ${item.type === 'question' ? 'justify-start' : 'justify-end'}`}
+            >
+              <div className={`px-4 py-2 rounded-lg ${item.type === 'question' ? 'bg-blue-100 text-blue-900' : 'bg-gray-200 text-gray-800'}`}>
+                {item.text}
+              </div>
+            </div>
+          ))}
+        </div>
+        {current < questions.length && (
+          <div className="flex gap-2">
+            <input
+              className="flex-1 border rounded-lg p-2"
+              value={answer}
+              onChange={e => setAnswer(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && handleSend()}
+              placeholder="回答を入力してください"
+            />
+            <button
+              className="bg-blue-600 text-white px-4 py-2 rounded-lg"
+              onClick={handleSend}
+              disabled={!answer.trim()}
+            >
+              送信
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
