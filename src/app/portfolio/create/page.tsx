@@ -232,8 +232,8 @@ const PortfolioCreatePage = () => {
               <div className="section-card active p-6 rounded-lg mb-6 border-l-4 border-indigo-600 bg-slate-50">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-lg font-semibold text-gray-800 flex items-center">
-                    <User className="w-5 h-5 mr-2 text-indigo-600" />基本情報
-                  </h3>
+                  <User className="w-5 h-5 mr-2 text-indigo-600" />基本情報
+                </h3>
                   <VisibilityToggle
                     section="basicInfo"
                     isVisible={form.visibilitySettings.basicInfo}
@@ -298,8 +298,8 @@ const PortfolioCreatePage = () => {
               <div className="section-card p-6 rounded-lg mb-6">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-lg font-semibold text-gray-800 flex items-center">
-                    <Code className="w-5 h-5 mr-2 text-indigo-600" />スキル・技術
-                  </h3>
+                  <Code className="w-5 h-5 mr-2 text-indigo-600" />スキル・技術
+                </h3>
                   <VisibilityToggle
                     section="skills"
                     isVisible={form.visibilitySettings.skills}
@@ -340,8 +340,8 @@ const PortfolioCreatePage = () => {
               <div className="section-card p-6 rounded-lg mb-6">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-lg font-semibold text-gray-800 flex items-center">
-                    <Projector className="w-5 h-5 mr-2 text-indigo-600" />プロジェクト・実績
-                  </h3>
+                  <Projector className="w-5 h-5 mr-2 text-indigo-600" />プロジェクト・実績
+                </h3>
                   <VisibilityToggle
                     section="projects"
                     isVisible={form.visibilitySettings.projects}
@@ -383,8 +383,8 @@ const PortfolioCreatePage = () => {
               <div className="section-card p-6 rounded-lg mb-6">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-lg font-semibold text-gray-800 flex items-center">
-                    <Briefcase className="w-5 h-5 mr-2 text-indigo-600" />経験・活動
-                  </h3>
+                  <Briefcase className="w-5 h-5 mr-2 text-indigo-600" />経験・活動
+                </h3>
                   <VisibilityToggle
                     section="experience"
                     isVisible={form.visibilitySettings.experience}
@@ -489,12 +489,12 @@ const PortfolioCreatePage = () => {
               <div className="p-6">
                 {/* Introduction */}
                 {form.visibilitySettings.basicInfo && (
-                  <div className="mb-6">
-                    <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center">
-                      <User className="w-5 h-5 mr-2 text-indigo-600" />自己紹介
-                    </h3>
-                    <p className="text-gray-700">{form.selfIntroduction || '自己紹介を入力してください'}</p>
-                  </div>
+                <div className="mb-6">
+                  <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center">
+                    <User className="w-5 h-5 mr-2 text-indigo-600" />自己紹介
+                  </h3>
+                  <p className="text-gray-700">{form.selfIntroduction || '自己紹介を入力してください'}</p>
+                </div>
                 )}
                 {form.visibilitySettings.phone && (
                   <div className="mb-6">
@@ -514,50 +514,50 @@ const PortfolioCreatePage = () => {
                 )}
                 {/* Skills */}
                 {form.visibilitySettings.skills && (
-                  <div className="mb-6">
-                    <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center">
-                      <Code className="w-5 h-5 mr-2 text-indigo-600" />スキル
-                    </h3>
-                    <div className="flex flex-wrap gap-2 mb-3">
-                      {form.skillTags.length === 0 ? (
-                        <span className="px-3 py-1 bg-gray-100 text-gray-500 rounded-full text-sm">スキルを追加してください</span>
-                      ) : (
-                        form.skillTags.map((tag, idx) => (
-                          <span key={idx} className="px-3 py-1 bg-indigo-100 text-indigo-700 rounded-full text-sm">{tag}</span>
-                        ))
-                      )}
-                    </div>
+                <div className="mb-6">
+                  <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center">
+                    <Code className="w-5 h-5 mr-2 text-indigo-600" />スキル
+                  </h3>
+                  <div className="flex flex-wrap gap-2 mb-3">
+                    {form.skillTags.length === 0 ? (
+                      <span className="px-3 py-1 bg-gray-100 text-gray-500 rounded-full text-sm">スキルを追加してください</span>
+                    ) : (
+                      form.skillTags.map((tag, idx) => (
+                        <span key={idx} className="px-3 py-1 bg-indigo-100 text-indigo-700 rounded-full text-sm">{tag}</span>
+                      ))
+                    )}
                   </div>
+                </div>
                 )}
                 {/* Certifications */}
                 {form.visibilitySettings.skills && (
-                  <div className="mb-6">
-                    <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center">
-                      <Code className="w-5 h-5 mr-2 text-indigo-600" />資格・検定
-                    </h3>
-                    <p className="text-gray-700">{form.certifications}</p>
-                  </div>
+                <div className="mb-6">
+                  <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center">
+                    <Code className="w-5 h-5 mr-2 text-indigo-600" />資格・検定
+                  </h3>
+                  <p className="text-gray-700">{form.certifications}</p>
+                </div>
                 )}
                 {/* Projects */}
                 {form.visibilitySettings.projects && (
-                  <div className="mb-6">
-                    <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center">
-                      <Projector className="w-5 h-5 mr-2 text-indigo-600" />プロジェクト
-                    </h3>
-                    <div>
-                      {form.projects.length === 0 ? (
-                        <span className="px-3 py-1 bg-gray-100 text-gray-500 rounded-full text-sm">プロジェクトを追加してください</span>
-                      ) : (
-                        form.projects.map((project, idx) => (
-                          <div key={idx} className="mb-2">
-                            <div className="font-semibold text-indigo-700">{project.name}</div>
-                            <div className="text-gray-700 text-sm">{project.description}</div>
-                            {project.url && <a href={project.url} className="text-indigo-500 text-xs underline" target="_blank" rel="noopener noreferrer">{project.url}</a>}
-                          </div>
-                        ))
-                      )}
-                    </div>
+                <div className="mb-6">
+                  <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center">
+                    <Projector className="w-5 h-5 mr-2 text-indigo-600" />プロジェクト
+                  </h3>
+                  <div>
+                    {form.projects.length === 0 ? (
+                      <span className="px-3 py-1 bg-gray-100 text-gray-500 rounded-full text-sm">プロジェクトを追加してください</span>
+                    ) : (
+                      form.projects.map((project, idx) => (
+                        <div key={idx} className="mb-2">
+                          <div className="font-semibold text-indigo-700">{project.name}</div>
+                          <div className="text-gray-700 text-sm">{project.description}</div>
+                          {project.url && <a href={project.url} className="text-indigo-500 text-xs underline" target="_blank" rel="noopener noreferrer">{project.url}</a>}
+                        </div>
+                      ))
+                    )}
                   </div>
+                </div>
                 )}
                 {/* Experience & Activities */}
                 {form.visibilitySettings.experience && (form.experience.internship || form.experience.extracurricular || form.experience.awards) && (
@@ -587,12 +587,12 @@ const PortfolioCreatePage = () => {
                 )}
                 {/* Contact */}
                 {form.visibilitySettings.basicInfo && (
-                  <div className="mb-6">
-                    <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center">
-                      <User className="w-5 h-5 mr-2 text-indigo-600" />連絡先
-                    </h3>
-                    <p className="text-gray-700">{form.email || 'メールアドレスを入力してください'}</p>
-                  </div>
+                <div className="mb-6">
+                  <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center">
+                    <User className="w-5 h-5 mr-2 text-indigo-600" />連絡先
+                  </h3>
+                  <p className="text-gray-700">{form.email || 'メールアドレスを入力してください'}</p>
+                </div>
                 )}
                 {/* Other Information */}
                 {form.visibilitySettings.other && (form.other.customQuestions || form.other.additionalInfo) && (
