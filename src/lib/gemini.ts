@@ -30,6 +30,9 @@ export async function generateInterviewQuestionsWithGemini({ user, portfolio }: 
 
 【出力形式】
 - 質問のみを1行ずつ5つ出力してください。
+- 学科に関する質問は、その学部で何を学んできたか簡単に質問してください。
+- スキルに関する質問は、1つを深く掘り下げて質問してください。
+- 経験については、その経験を通して何を学んだか簡単に質問してください。
 `;
 
   const result = await model.generateContent(prompt);
