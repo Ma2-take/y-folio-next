@@ -8,14 +8,27 @@ interface Question {
 
 type HistoryItem = { type: 'question' | 'answer'; text: string };
 
-export default function InterviewSession({ onFinish, questions }: { onFinish: () => void; questions: Question[] }) {
+interface InterviewSessionProps {
+  onFinish: (evaluation?: any) => void;
+  questions: Question[];
+  industry?: string;
+  jobType?: string;
+}
+
+export default function InterviewSession({ onFinish, questions }: InterviewSessionProps) {
   const [current, setCurrent] = useState(0);
   const [answer, setAnswer] = useState("");
+  const [answers, setAnswers] = useState<string[]>([]);
   const [history, setHistory] = useState<HistoryItem[]>(
     questions[0] ? [{ type: 'question', text: questions[0].question }] : []
   );
   // 回答履歴のref配列
   const answerRefs = useRef<(HTMLDivElement | null)[]>([]);
+
+  // 面接終了時の処理（一時的に簡素化）
+  const handleFinish = () => {
+    onFinish(null);
+  };
 
   // 回答送信
   const handleSend = () => {
@@ -29,7 +42,7 @@ export default function InterviewSession({ onFinish, questions }: { onFinish: ()
     } else {
       setHistory([...newHistory, { type: 'question', text: "面接は終了です。お疲れさまでした！" }]);
       setAnswer("");
-      setTimeout(onFinish, 2000);
+      setTimeout(handleFinish, 2000);
     }
   };
 
