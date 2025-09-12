@@ -113,3 +113,4 @@ describe('InterviewResults', () => {
     expect(totalScore).toHaveClass('text-green-600');
   });
 });
+

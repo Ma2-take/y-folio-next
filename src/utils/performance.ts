@@ -116,3 +116,4 @@ export const checkPerformance = () => {
     console.warn('High memory usage detected:', memory);
   }
 };
+

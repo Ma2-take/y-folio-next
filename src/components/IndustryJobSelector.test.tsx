@@ -96,3 +96,4 @@ describe('IndustryJobSelector', () => {
     expect(screen.getByText('15%')).toBeInTheDocument(); // 業界知識
   });
 });
+
