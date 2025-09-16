@@ -373,3 +373,5 @@ export const getJobTypesByIndustry = (industryId: string) => {
   return industry?.jobTypes || [];
 };
 
+
+

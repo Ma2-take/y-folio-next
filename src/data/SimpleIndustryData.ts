@@ -68,3 +68,5 @@ export const simpleJobTypes: Record<string, SimpleJobType[]> = {
   ]
 };
 
+
+

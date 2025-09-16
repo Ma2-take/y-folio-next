@@ -47,9 +47,31 @@ export default function InterviewPage() {
     }
   };
 
-  const handleFinish = (evaluationResult?: any) => {
-    setEvaluation(evaluationResult);
-    setStep('result');
+  const handleFinish = async (answers: { questionId: number; answer: string }[]) => {
+    setLoading(true);
+    setError("");
+    try {
+      const res = await fetch("/api/ai/evaluate-interview", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          user: testUser,
+          portfolio: testPortfolio,
+          industry,
+          jobType,
+          questions,
+          answers,
+        }),
+      });
+      if (!res.ok) throw new Error("評価APIリクエストに失敗しました");
+      const data = await res.json();
+      setEvaluation(data.evaluation);
+      setStep('result');
+    } catch (e) {
+      setError("AIによる評価に失敗しました。");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleRestart = () => {
@@ -79,4 +101,4 @@ export default function InterviewPage() {
       )}
     </div>
   );
-} 
+}
