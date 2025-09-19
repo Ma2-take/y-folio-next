@@ -22,6 +22,20 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const router = useRouter();
 
+  // FirebaseユーザーをPrismaに同期
+  const syncUserToPrisma = async (firebaseUser: any) => {
+    try {
+      const idToken = await firebaseUser.getIdToken();
+      await fetch('/api/auth/sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ idToken }),
+      });
+    } catch (e) {
+      console.error('Failed to sync user to Prisma', e);
+    }
+  };
+
   // メール + パスワード ログイン
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,6 +52,7 @@ export default function LoginPage() {
       const user = userCredential.user;
 
       console.log("Email login success:", user);
+      await syncUserToPrisma(user);
 
       localStorage.setItem("user", JSON.stringify(user));
       router.push("/dashboard");
@@ -57,6 +72,7 @@ export default function LoginPage() {
 
       const user = result.user;
       console.log("Google Login Success:", user);
+      await syncUserToPrisma(user);
 
       localStorage.setItem("user", JSON.stringify(user));
       router.push("/dashboard");
@@ -74,6 +90,7 @@ export default function LoginPage() {
 
       const user = result.user;
       console.log("GitHub Login Success:", user);
+      await syncUserToPrisma(user);
 
       localStorage.setItem("user", JSON.stringify(user));
       router.push("/dashboard");

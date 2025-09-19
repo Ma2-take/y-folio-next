@@ -26,6 +26,8 @@ model User {
     restTokenExpires DateTime? @map("rest_token_expires")
     certifications   String?
     awards           String?
+    firebaseUid      String? @unique @map("firebase_uid")
+    photoURL         String? @map("photo_url")
 
     skillTags  SkillTag[]          @relation("user_skill_tags")
     projects   Project[]
