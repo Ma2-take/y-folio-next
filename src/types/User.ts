@@ -15,6 +15,8 @@ export interface User {
     verification_token?: string | null
     reset_token?: string | null
     reset_token_expires?: Date | null
+    certifications?: string | null
+    awards?: string | null
     created_at: Date
     updated_at: Date
 }

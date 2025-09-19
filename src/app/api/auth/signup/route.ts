@@ -1,4 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server';
+// app/api/auth/signup/route.ts
+import { NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+import bcrypt from "bcryptjs";
 
 // データベース接続（実際の実装では適切なDBライブラリを使用）
 let mockUsers = [
@@ -14,64 +17,57 @@ let mockUsers = [
   }
 ];
 
-export async function POST(request: NextRequest) {
+export async function POST(req: Request) {
   try {
-    const { email, password, name, university, grade, birthDate, selfIntroduction } = await request.json();
+    const body = await req.json();
+    const {
+      email,
+      password,
+      name,
+      university,
+      grade,
+      birthDate,
+      selfIntroduction,
+    } = body;
 
-    // バリデーション
+    // バリデーション（最低限）
     if (!email || !password || !name) {
       return NextResponse.json(
-        { error: '必須項目を入力してください' },
+        { error: "必須項目が不足しています" },
         { status: 400 }
       );
     }
 
-    // メールアドレスの重複チェック
-    const existingUser = mockUsers.find(u => u.email === email);
-    if (existingUser) {
+    // 重複チェック
+    const existing = await prisma.user.findUnique({ where: { email } });
+    if (existing) {
       return NextResponse.json(
-        { error: 'このメールアドレスは既に登録されています' },
-        { status: 409 }
-      );
-    }
-
-    // パスワード強度チェック
-    if (password.length < 8) {
-      return NextResponse.json(
-        { error: 'パスワードは8文字以上で入力してください' },
+        { error: "このメールアドレスは既に登録されています" },
         { status: 400 }
       );
     }
 
-    // 新しいユーザー作成
-    const newUser = {
-      id: `user_${Date.now()}`,
-      email,
-      password_hash: `$2y$10$hashed_${password}`, // 実際の実装ではbcrypt.hashSyncを使用
-      name,
-      university: university || '',
-      grade: grade || '',
-      birth_date: birthDate || null,
-      self_introduction: selfIntroduction || ''
-    };
+    // パスワードハッシュ化
+    const passwordHash = await bcrypt.hash(password, 10);
+    // DB 保存
+    await prisma.user.create({
+      data: {
+        email,
+        passwordHash,
+        name,
+        university,
+        grade,
+        birthDate: new Date(birthDate),
+        selfIntroduction,
+      },
+    });
 
-    // ユーザーを保存（実際の実装ではデータベースに保存）
-    mockUsers.push(newUser);
-
-    // レスポンス用のユーザー情報（パスワードは除外）
-    const { password_hash, ...userInfo } = newUser;
-
-    return NextResponse.json({
-      success: true,
-      user: userInfo,
-      message: 'アカウントが正常に作成されました'
-    }, { status: 201 });
-
-  } catch (error) {
-    console.error('Signup error:', error);
+    return NextResponse.json({ message: "登録成功" }, { status: 201 });
+  } catch (e: any) {
+    console.error(e);
     return NextResponse.json(
-      { error: '新規登録処理中にエラーが発生しました' },
+      { error: "サーバーエラーが発生しました" },
       { status: 500 }
     );
   }
-} 
+}

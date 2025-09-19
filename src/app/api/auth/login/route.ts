@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import bcrypt from 'bcryptjs';
+// import bcrypt from 'bcryptjs';
 import { v4 as uuidv4 } from 'uuid';
 
 // データベース接続（実際の実装では適切なDBライブラリを使用）
@@ -7,7 +7,6 @@ const mockUsers = [
   {
     id: 'user_001',
     email: 'tanaka@example.com',
-    password_hash: '$2y$10$example_hash',
     name: '田中 太郎',
     university: '東京大学 情報科学科',
     grade: '4年生',
@@ -51,12 +50,9 @@ export async function POST(request: NextRequest) {
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + 7); // 7日間有効
 
-    // レスポンス用のユーザー情報（パスワードは除外）
-    const { password_hash, ...userInfo } = user;
-
     return NextResponse.json({
       success: true,
-      user: userInfo,
+      user: user,
       sessionToken,
       expiresAt: expiresAt.toISOString()
     });

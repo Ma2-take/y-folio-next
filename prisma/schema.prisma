@@ -11,11 +11,19 @@ model User {
     id               Int     @id @default(autoincrement())
     name             String
     university       String
+    department       String
     grade            String
     email            String  @unique
+    passwordHash     String? @map("password_hash")
     phone            String?
     address          String?
+    birthDate DateTime @map("birth_date")
     selfIntroduction String? @map("self_introduction")
+    isActive         Boolean @default(true) @map("is_active")
+    email_verified   Boolean @default(false) @map("email_verified")
+    verificationToken String? @map("verification_token")
+    restToken        String? @map("rest_token")
+    restTokenExpires DateTime? @map("rest_token_expires")
     certifications   String?
     awards           String?
 

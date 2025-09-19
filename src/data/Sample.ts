@@ -3,6 +3,7 @@ export const sampleForm = {
   university: '東京大学 工学部',
   grade: '4年生',
   email: 'yamada@example.com',
+  birthdayAt: '2000-01-01',
   phone: '090-1234-5678',
   address: '東京都新宿区',
   selfIntroduction: 'Web開発とAI技術に興味があります。React/Next.jsでの開発経験あり。',
