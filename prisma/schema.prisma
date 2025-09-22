@@ -1,97 +1,37 @@
 generator client {
-    provider = "prisma-client-js"
+  provider = "prisma-client-js"
 }
 
 datasource db {
-    provider = "mysql"
-    url      = env("DATABASE_URL")
+  provider = "mysql" // XAMPPの場合
+  url      = env("DATABASE_URL")
 }
 
 model User {
-    id               Int     @id @default(autoincrement())
-    name             String
-    university       String
-    department       String
-    grade            String
-    email            String  @unique
-    passwordHash     String? @map("password_hash")
-    phone            String?
-    address          String?
-    birthDate DateTime @map("birth_date")
-    selfIntroduction String? @map("self_introduction")
-    isActive         Boolean @default(true) @map("is_active")
-    email_verified   Boolean @default(false) @map("email_verified")
-    verificationToken String? @map("verification_token")
-    restToken        String? @map("rest_token")
-    restTokenExpires DateTime? @map("rest_token_expires")
-    certifications   String?
-    awards           String?
-    firebaseUid      String? @unique @map("firebase_uid")
-    photoURL         String? @map("photo_url")
-
-    skillTags  SkillTag[]          @relation("user_skill_tags")
-    projects   Project[]
-    experience Experience?
-    other      OtherInfo?
-    visibility VisibilitySettings?
-
-    createdAt DateTime @default(now()) @map("created_at")
-    updatedAt DateTime @updatedAt @map("updated_at")
-
-    @@map("users")
+  id        String      @id @default(uuid())
+  name      String?
+  email     String      @unique
+  portfolios Portfolio[]
 }
 
-model SkillTag {
-    id     Int    @id @default(autoincrement())
-    name   String
-    userId Int    @map("user_id")
-    user   User   @relation("user_skill_tags", fields: [userId], references: [id])
-
-    @@map("skill_tags")
-}
-
-model Project {
-    id          Int     @id @default(autoincrement())
-    name        String
-    description String
-    url         String?
-    userId      Int     @map("user_id")
-    user        User    @relation(fields: [userId], references: [id])
-
-    @@map("projects")
-}
-
-model Experience {
-    id              Int     @id @default(autoincrement())
-    internship      String?
-    extracurricular String?
-    userId          Int     @unique @map("user_id")
-    user            User    @relation(fields: [userId], references: [id])
-
-    @@map("experiences")
-}
-
-model OtherInfo {
-    id              Int     @id @default(autoincrement())
-    customQuestions String? @map("custom_questions")
-    additionalInfo  String? @map("additional_info")
-    userId          Int     @unique @map("user_id")
-    user            User    @relation(fields: [userId], references: [id])
-
-    @@map("other_info")
-}
-
-model VisibilitySettings {
-    id         Int     @id @default(autoincrement())
-    basicInfo  Boolean @map("basic_info")
-    phone      Boolean
-    address    Boolean
-    skills     Boolean
-    projects   Boolean
-    experience Boolean
-    other      Boolean
-    userId     Int     @unique @map("user_id")
-    user       User    @relation(fields: [userId], references: [id])
-
-    @@map("visibility_settings")
+model Portfolio {
+  id          String   @id @default(uuid())
+  userId      String
+  name        String
+  university  String
+  faculty     String
+  grade       String
+  email       String
+  phone       String
+  address     String
+  selfIntroduction String
+  skillTags   String   // JSON文字列で保存
+  certifications String
+  projects    String   // JSON文字列で保存
+  experience  String   // JSON文字列で保存
+  other       String   // JSON文字列で保存
+  publication String   // JSON文字列で保存
+  visibilitySettings String // JSON文字列で保存
+  user        User     @relation(fields: [userId], references: [id])
+  createdAt   DateTime @default(now())
 }

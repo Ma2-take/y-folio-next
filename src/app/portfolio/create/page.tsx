@@ -1,6 +1,8 @@
 "use client";
-import { Briefcase, Save, Eye, User, Code, Projector, Cog, Plus, ArrowLeft, X, EyeOff } from 'lucide-react';
-import React, { useState, useRef } from 'react';
+import { Briefcase, Save, Eye, User, Code, Projector, Cog, Plus, X, EyeOff } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { useAuth } from "@/hooks/useAuth";
+import { useRouter } from "next/navigation";
 
 type Project = { name: string; description: string; url: string };
 
@@ -83,10 +85,22 @@ const initialForm: FormState = {
 const PortfolioCreatePage = () => {
   const [form, setForm] = useState<FormState>(initialForm);
   const skillInputRef = useRef<HTMLInputElement>(null);
+  const { user } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (user) {
+      setForm((prev) => ({
+        ...prev,
+        name: user.displayName || "",
+        email: user.email || "",
+      }));
+    }
+  }, [user]);
 
   // 基本情報
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { name, value, type } = e.target;
+    const { name, value,  } = e.target;
     if (name in form.experience) {
       setForm((prev) => ({ ...prev, experience: { ...prev.experience, [name]: value } }));
     } else if (name in form.other) {
@@ -154,7 +168,7 @@ const PortfolioCreatePage = () => {
   };
 
   // 可視性トグルコンポーネント
-  const VisibilityToggle = ({ section, isVisible, onChange }: { section: string; isVisible: boolean; onChange: () => void }) => (
+  const VisibilityToggle = ({isVisible, onChange }: { section: string; isVisible: boolean; onChange: () => void }) => (
     <div className="flex items-center justify-between mb-4">
       <div className="flex items-center">
         {isVisible ? <Eye className="w-4 h-4 text-green-600 mr-2" /> : <EyeOff className="w-4 h-4 text-gray-400 mr-2" />}
@@ -177,6 +191,27 @@ const PortfolioCreatePage = () => {
       </button>
     </div>
   );
+
+  const handleSave = async () => {
+    if (!user) return;
+
+    try {
+      const res = await fetch("/api/portfolio/save", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId: user.uid,
+          ...form,
+        }),
+      });
+      if (!res.ok) throw new Error("保存に失敗しました");
+      const data = await res.json();
+      // 保存成功時にプレビュー画面へ遷移
+      router.push(`/portfolio/preview?id=${data.portfolio.id}`);
+    } catch (e) {
+      alert("保存に失敗しました");
+    }
+  };
 
   return (
     <div className="bg-gray-50 min-h-screen">
@@ -628,7 +663,7 @@ const PortfolioCreatePage = () => {
       </div>
       {/* Floating Action Button */}
       <div className="fixed bottom-5 right-5 z-50">
-        <button className="bg-indigo-600 text-white p-4 rounded-full shadow-lg hover:bg-indigo-700 transition hover:scale-105 flex items-center">
+        <button className="bg-indigo-600 text-white p-4 rounded-full shadow-lg hover:bg-indigo-700 transition hover:scale-105 flex items-center" onClick={handleSave}>
           <Save className="w-6 h-6" />
         </button>
       </div>

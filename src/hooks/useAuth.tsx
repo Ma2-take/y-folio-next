@@ -5,15 +5,11 @@ import { auth } from '@/lib/firebase.client';
 
 export function useAuth() {
     const [user, setUser] = useState<User | null>(null);
-    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const unsub = onAuthStateChanged(auth(), (u) => {
-            setUser(u);
-            setLoading(false);
-        });
-        return () => unsub();
+        const unsubscribe = onAuthStateChanged(auth, setUser);
+        return () => unsubscribe();
     }, []);
 
-    return { user, loading } as const;
+    return { user } as const;
 }
