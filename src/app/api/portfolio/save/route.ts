@@ -14,37 +14,27 @@ export async function POST(request: NextRequest) {
       update: {
         email: data.user.email,
         name: data.user.name,
-        university: data.user.university,
-        grade: data.user.grade,
-        // birthDate: new Date(data.user.birthDate),
-        selfIntroduction: data.user.selfIntroduction,
       },
       create: {
-        id: data.userId,
         email: data.user.email,
         name: data.user.name,
-        university: data.user.university,
-        grade: data.user.grade,
-        // birthDate: new Date(data.user.birthDate),
-        selfIntroduction: data.user.selfIntroduction,
-        // passwordHash: '', // 初期化
       },
     });
 
     // 2. ポートフォリオ基本設定
-    // const portfolio = await prisma.portfolio.upsert({
-    //   where: { id: data.id },
-    //   update: {
-    //     isPublic: data.publicationSettings.isPublic,
-    //     autoDeleteAfterOneYear: data.publicationSettings.autoDeleteAfterOneYear,
-    //   },
-    //   create: {
-    //     id: data.id,
-    //     userId: data.userId,
-    //     isPublic: data.publicationSettings.isPublic,
-    //     autoDeleteAfterOneYear: data.publicationSettings.autoDeleteAfterOneYear,
-    //   },
-    // });
+    const portfolio = await prisma.portfolio.upsert({
+      where: { id: data.id },
+      update: {
+        isPublic: data.publicationSettings.isPublic,
+        autoDeleteAfterOneYear: data.publicationSettings.autoDeleteAfterOneYear,
+      },
+      create: {
+        id: data.id,
+        userId: data.userId,
+        isPublic: data.publicationSettings.isPublic,
+        autoDeleteAfterOneYear: data.publicationSettings.autoDeleteAfterOneYear,
+      },
+    });
 
     // // 3. 基本情報（別テーブルで分けてないならスキップ）
 
