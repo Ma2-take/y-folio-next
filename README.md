@@ -97,7 +97,10 @@ npx prisma migrate dev --name init
 npx prisma generate
 ```
 
----
+## DB再構築
+```bash
+npx prisma migrate reset
+```
 
 ## Firebase 認証のPrismaへの反映（同期）
 このプロジェクトでは、Firebaseでログイン成功後にIDトークンをサーバーへ送信し、PrismaのUserテーブルへユーザー情報（firebaseUid, email, name, photoURL, email_verifiedなど）を同期します。
