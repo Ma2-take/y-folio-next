@@ -7,10 +7,11 @@ type Project = { name: string; description: string; url: string };
 type FormState = {
   name: string;
   university: string;
+  faculty: string; // 追加
   grade: string;
   email: string;
-  phone: string; // 電話番号
-  address: string; // 所在地
+  phone: string;
+  address: string;
   selfIntroduction: string;
   skillTags: string[];
   skillInput: string;
@@ -32,8 +33,8 @@ type FormState = {
   };
   visibilitySettings: {
     basicInfo: boolean;
-    phone: boolean; // 電話番号の可視性
-    address: boolean; // 所在地の可視性
+    phone: boolean;
+    address: boolean;
     skills: boolean;
     projects: boolean;
     experience: boolean;
@@ -44,6 +45,7 @@ type FormState = {
 const initialForm: FormState = {
   name: '',
   university: '',
+  faculty: '', // 追加
   grade: '',
   email: '',
   phone: '',
@@ -232,8 +234,8 @@ const PortfolioCreatePage = () => {
               <div className="section-card active p-6 rounded-lg mb-6 border-l-4 border-indigo-600 bg-slate-50">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-lg font-semibold text-gray-800 flex items-center">
-                  <User className="w-5 h-5 mr-2 text-indigo-600" />基本情報
-                </h3>
+                    <User className="w-5 h-5 mr-2 text-indigo-600" />基本情報
+                  </h3>
                   <VisibilityToggle
                     section="basicInfo"
                     isVisible={form.visibilitySettings.basicInfo}
@@ -246,8 +248,12 @@ const PortfolioCreatePage = () => {
                     <input type="text" name="name" className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent" placeholder="山田 太郎" value={form.name} onChange={handleChange} />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">大学・学部</label>
-                    <input type="text" name="university" className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent" placeholder="東京大学 工学部" value={form.university} onChange={handleChange} />
+                    <label className="block text-sm font-medium text-gray-700 mb-2">大学名</label>
+                    <input type="text" name="university" className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent" placeholder="東京大学" value={form.university} onChange={handleChange} />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">学部・学科</label>
+                    <input type="text" name="faculty" className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent" placeholder="工学部" value={form.faculty} onChange={handleChange} />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">学年</label>
@@ -481,7 +487,8 @@ const PortfolioCreatePage = () => {
                     <User className="w-10 h-10 text-white" />
                   </div>
                   <h2 className="text-2xl font-bold mb-2">{form.name || 'お名前を入力してください'}</h2>
-                  <p className="text-lg opacity-90">{form.university || '大学・学部を入力してください'}</p>
+                  <p className="text-lg opacity-90">{form.university || '大学名を入力してください'}</p>
+                  <p className="text-lg opacity-90">{form.faculty || '学部・学科を入力してください'}</p>
                   <p className="text-sm opacity-75">{form.grade}</p>
                 </div>
               </div>
@@ -629,4 +636,4 @@ const PortfolioCreatePage = () => {
   );
 };
 
-export default PortfolioCreatePage; 
+export default PortfolioCreatePage;
