@@ -6,18 +6,17 @@ import {
     LayoutDashboard,
     Edit,
     Eye,
-    Share2,
+    User,
     UserCog,
     LogOut,
     HelpCircle,
 } from 'lucide-react';
 
 type SidebarProps = {
-    onShareClick: () => void;
+    onInterviewClick: () => void;
 };
 
-const Sidebar = ({ onShareClick }: SidebarProps) => {
-    // const user = testUser;
+const Sidebar = ({ onInterviewClick }: SidebarProps) => {
     const { user, loading } = useAuth();
 
     if (loading) return <p>Loading...</p>;
@@ -28,8 +27,6 @@ const Sidebar = ({ onShareClick }: SidebarProps) => {
             <Link href="/" className="underline">トップへ戻る</Link>
         </div>
     );
-
-    console.log(user)
 
     return (
         <aside className="fixed inset-y-0 left-0 w-64 bg-white shadow-lg z-50 flex flex-col">
@@ -80,11 +77,11 @@ const Sidebar = ({ onShareClick }: SidebarProps) => {
                         <span>プレビュー</span>
                     </a>
                     <button
-                        onClick={onShareClick}
+                        onClick={onInterviewClick}
                         className="w-full text-left flex items-center px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100"
                     >
-                        <Share2 className="w-5 h-5 mr-3" />
-                        <span>共有</span>
+                        <User className="w-5 h-5 mr-3" />
+                        <span>面接シミュレーション</span>
                     </button>
                 </div>
 
