@@ -16,6 +16,8 @@ export async function POST(request: NextRequest) {
       update: {
         email: data.user.email,     // 最新のメールで更新
         name: data.user.name,
+        address: data.user.address, //住所・電話番号?
+        phone: data.user.phone,
       },
       create: {
         id: data.user.uid,          // 主キーとして保存

@@ -14,7 +14,7 @@ import PdfPreviewModal from '@/components/PdfPreviewModal';
 const DashboardPage = () => {
   const router = useRouter();
   const [showPdfPreview, setShowPdfPreview] = useState(false);
-  const [pdfFormat, setPdfFormat] = useState<'standard' | 'table' | 'resume'>('standard');
+  const [pdfFormat, setPdfFormat] = useState<'standard' | 'table' | 'resume' | 'career'>('standard');
 
   const handlePdfPreview = () => {
     setShowPdfPreview(true);
