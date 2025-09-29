@@ -1,7 +1,7 @@
 'use client';
 
 import { User } from '@/types/User';
-import { Edit, Eye, Share2, FileText } from 'lucide-react';
+import { Edit, Eye, Share2, FileText ,} from 'lucide-react';
 
 interface Props {
   user: User;
@@ -20,8 +20,8 @@ export default function PortfolioPreview({ user, handleShareClick, handlePdfPrev
           <button onClick={handleShareClick} className="flex items-center p-4 border-2 border-transparent rounded-lg hover:bg-gray-50 hover:border-indigo-500 text-left w-full">
             <Share2 className="text-purple-600 w-6 h-6 mr-4" />
             <div>
-              <p className="font-medium text-gray-800">共有</p>
-              <p className="text-sm text-gray-500">URLをコピーして共有</p>
+              <a href='/interview' className="font-medium text-gray-800">面接シミュレーション</a>
+              <p className="text-sm text-gray-500">AIを使った面接シミュレーション</p>
             </div>
           </button>
           <button onClick={handlePdfPreview} className="w-full flex items-center p-4 border-2 border-transparent rounded-lg hover:bg-gray-50 hover:border-indigo-500 text-left"><FileText className="text-red-600 w-6 h-6 mr-4" /><div><p className="font-medium text-gray-800">PDFで出力</p><p className="text-sm text-gray-500">印刷用のPDFをダウンロード</p></div></button>
