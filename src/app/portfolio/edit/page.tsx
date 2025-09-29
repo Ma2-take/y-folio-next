@@ -2,14 +2,17 @@
 
 import { Briefcase, ArrowLeft, Save, Code, UserIcon, Projector, Cog, Plus, X, Eye, EyeOff }
   from 'lucide-react';
-import React, { useState, useRef } from 'react';
-import { User } from '@/types/User';
+import React, { useState, useRef, useEffect } from 'react';
+import { DbUser, User } from '@/types/User';
 import { Project } from '@/types/Project';
 import { Portfolio } from '@/types/Portforio';
 import { testPortfolio } from '@/data/TestPortfolio';
 import { testUser } from '@/data/TestUser';
 import { testProjects } from '@/data/TestProjects';
 import { testVisibilitySettings } from '@/data/TestVisibiltySettings';
+import { fetchUser } from '@/lib/api/user';
+import { useAuth } from '@/hooks/useAuth';
+import test from 'node:test';
 
 // フォーム状態の型定義
 interface PortfolioForm {
@@ -41,12 +44,39 @@ interface VisibilitySettings {
 }
 
 const PortfolioEditPage = () => {
-  const [form, setForm] = useState<PortfolioForm>(initialForm);
   const [visibilitySettings, setVisibilitySettings] = useState<VisibilitySettings>(testVisibilitySettings);
   const [skillInput, setSkillInput] = useState("");
   const skillInputRef = useRef<HTMLInputElement>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState("");
+
+  const { user, loading } = useAuth();
+  const [form, setForm] = useState<PortfolioForm>(null);
+  const [dbUser, setDbUser] = useState<DbUser>(null);
+
+  useEffect(() => {
+    if (loading) return; // ローディング中は何もしない
+    console.log(user)
+    const uid = user?.uid || "";
+    fetchUser(uid).then((data) => {
+      console.log("APIレスポンス:", data);
+      setDbUser(data.user);
+
+      // DBユーザーを form に反映
+      setForm((prev) => ({
+        ...prev,
+        user: data.user,
+        portfolio: testPortfolio,
+        projects: testProjects,
+        isDirty: false,
+        isSubmitting: false,
+      }));
+    });
+  }, [user, loading]);
+
+  if (loading || !form) {
+    return <div>Loading...</div>;
+  }
 
   // 基本情報ハンドラ
   const handleBasicInfoChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -200,7 +230,7 @@ const PortfolioEditPage = () => {
       });
       if (res.ok) {
         setSaveMessage("保存しました");
-        setForm((prev) => ({ ...prev}));
+        setForm((prev) => ({ ...prev }));
       } else {
         setSaveMessage("保存に失敗しました");
       }

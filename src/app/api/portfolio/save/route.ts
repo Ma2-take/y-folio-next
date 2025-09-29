@@ -8,14 +8,17 @@ export async function POST(request: NextRequest) {
 
   console.log('Received data:', data);
   try {
+    console.log('user', data.user);
+
     // 1. ユーザー情報 upsert
     const user = await prisma.user.upsert({
-      where: { email: data.user.email },
+      where: { id: data.user.id },
       update: {
-        email: data.user.email,
+        email: data.user.email,     // 最新のメールで更新
         name: data.user.name,
       },
       create: {
+        id: data.user.uid,          // 主キーとして保存
         email: data.user.email,
         name: data.user.name,
       },

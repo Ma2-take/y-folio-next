@@ -8,10 +8,22 @@ datasource db {
 }
 
 model User {
-  id        String      @id @default(uuid())
+  id        String   @id @default(cuid())  // 内部的に使うユーザーID
   name      String?
-  email     String      @unique
+  email     String?  @unique
+  accounts  Account[]  // 複数のSNSログインを紐づけられる
   portfolios Portfolio[]
+}
+
+model Account {
+  id            String   @id @default(cuid())
+  provider      String   // "google", "github", "twitter" など
+  providerUserId String   // Googleならsub, GitHubならid など
+  userId        String
+
+  user          User     @relation(fields: [userId], references: [id])
+
+  @@unique([provider, providerUserId]) // プロバイダごとに一意
 }
 
 model Portfolio {

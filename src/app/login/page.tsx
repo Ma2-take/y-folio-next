@@ -23,17 +23,18 @@ export default function LoginPage() {
   const router = useRouter();
 
   // FirebaseユーザーをPrismaに同期
-  const syncUserToPrisma = async (firebaseUser: any) => {
-    try {
-      const idToken = await firebaseUser.getIdToken();
-      await fetch('/api/auth/sync', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ idToken }),
-      });
-    } catch (e) {
-      console.error('Failed to sync user to Prisma', e);
-    }
+  const syncUserToPrisma = async (user: any) => {
+    await fetch("/api/auth/sync", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        user: {
+          uid: user.uid,        // ← Firebase Authの一意ID
+          email: user.email,
+          name: user.displayName,
+        },
+      }),
+    });
   };
 
   // メール + パスワード ログイン
