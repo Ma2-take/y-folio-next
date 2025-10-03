@@ -1,13 +1,40 @@
 'use client';
 
-export default function TablePdfContent() {
+import { PortfolioPdfData } from '@/types/PortfolioPdf';
+
+interface Props {
+  data: PortfolioPdfData;
+}
+
+export default function TablePdfContent({ data }: Props) {
+  const { user, portfolio } = data;
+  const displayName = portfolio?.name || user?.name || '氏名未設定';
+  const university = [portfolio?.university || user?.university, portfolio?.faculty || user?.faculty]
+    .filter(Boolean)
+    .join(' / ');
+  const contactEmail = portfolio?.email || user?.email || '未登録';
+  const contactPhone = portfolio?.phone || user?.phone || '未登録';
+  const contactAddress = portfolio?.address || user?.address || '未登録';
+  const skills = portfolio?.skillTags ?? [];
+  const projects = portfolio?.projects ?? [];
+  const certifications = portfolio?.certifications ?? [];
+  const grade = portfolio?.grade || user?.grade || '';
+
+  const renderEmptyRow = (colSpan: number, message: string) => (
+    <tr>
+      <td className="border border-gray-300 px-4 py-4 text-center text-gray-500" colSpan={colSpan}>
+        {message}
+      </td>
+    </tr>
+  );
+
   return (
     <>
       {/* Header */}
       <div className="text-center mb-8 pb-6 border-b-2 border-gray-200">
-        <h1 className="text-3xl font-bold text-gray-800 mb-2">田中 太郎</h1>
-        <p className="text-lg text-gray-600 mb-2">東京大学・情報科学科</p>
-        <p className="text-sm text-gray-500">Web開発者 / フルスタックエンジニア</p>
+        <h1 className="text-3xl font-bold text-gray-800 mb-2">{displayName}</h1>
+        {university && <p className="text-lg text-gray-600 mb-1">{university}</p>}
+        {grade && <p className="text-sm text-gray-500">{grade}</p>}
       </div>
 
       {/* Contact Info */}
@@ -17,19 +44,15 @@ export default function TablePdfContent() {
           <tbody>
             <tr className="bg-gray-50">
               <td className="border border-gray-300 px-4 py-2 font-medium text-gray-700 w-1/3">メール</td>
-              <td className="border border-gray-300 px-4 py-2">tanaka@example.com</td>
+              <td className="border border-gray-300 px-4 py-2">{contactEmail}</td>
             </tr>
             <tr>
               <td className="border border-gray-300 px-4 py-2 font-medium text-gray-700">電話</td>
-              <td className="border border-gray-300 px-4 py-2">090-1234-5678</td>
+              <td className="border border-gray-300 px-4 py-2">{contactPhone}</td>
             </tr>
             <tr className="bg-gray-50">
               <td className="border border-gray-300 px-4 py-2 font-medium text-gray-700">住所</td>
-              <td className="border border-gray-300 px-4 py-2">東京都渋谷区</td>
-            </tr>
-            <tr>
-              <td className="border border-gray-300 px-4 py-2 font-medium text-gray-700">GitHub</td>
-              <td className="border border-gray-300 px-4 py-2">github.com/tanaka-taro</td>
+              <td className="border border-gray-300 px-4 py-2">{contactAddress}</td>
             </tr>
           </tbody>
         </table>
@@ -41,27 +64,19 @@ export default function TablePdfContent() {
         <table className="w-full border-collapse border border-gray-300 text-sm">
           <thead>
             <tr className="bg-gray-100">
-              <th className="border border-gray-300 px-4 py-2 text-left font-medium text-gray-700">カテゴリ</th>
-              <th className="border border-gray-300 px-4 py-2 text-left font-medium text-gray-700">スキル</th>
+              <th className="border border-gray-300 px-4 py-2 text-left font-medium text-gray-700 w-1/3">No.</th>
+              <th className="border border-gray-300 px-4 py-2 text-left font-medium text-gray-700">スキル名</th>
             </tr>
           </thead>
           <tbody>
-            <tr>
-              <td className="border border-gray-300 px-4 py-2 font-medium text-gray-700">プログラミング言語</td>
-              <td className="border border-gray-300 px-4 py-2">JavaScript, Python, TypeScript, Java</td>
-            </tr>
-            <tr className="bg-gray-50">
-              <td className="border border-gray-300 px-4 py-2 font-medium text-gray-700">フレームワーク・ライブラリ</td>
-              <td className="border border-gray-300 px-4 py-2">React, Node.js, Next.js, Express</td>
-            </tr>
-            <tr>
-              <td className="border border-gray-300 px-4 py-2 font-medium text-gray-700">データベース</td>
-              <td className="border border-gray-300 px-4 py-2">MySQL, PostgreSQL, MongoDB</td>
-            </tr>
-            <tr className="bg-gray-50">
-              <td className="border border-gray-300 px-4 py-2 font-medium text-gray-700">クラウド・インフラ</td>
-              <td className="border border-gray-300 px-4 py-2">AWS, Google Cloud, Docker</td>
-            </tr>
+            {skills.length > 0
+              ? skills.map((skill, index) => (
+                  <tr key={skill} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                    <td className="border border-gray-300 px-4 py-2 font-medium text-gray-700">{index + 1}</td>
+                    <td className="border border-gray-300 px-4 py-2">{skill}</td>
+                  </tr>
+                ))
+              : renderEmptyRow(2, 'スキル情報が登録されていません。')}
           </tbody>
         </table>
       </div>
@@ -74,49 +89,58 @@ export default function TablePdfContent() {
             <tr className="bg-gray-100">
               <th className="border border-gray-300 px-4 py-2 text-left font-medium text-gray-700">期間</th>
               <th className="border border-gray-300 px-4 py-2 text-left font-medium text-gray-700">プロジェクト名</th>
-              <th className="border border-gray-300 px-4 py-2 text-left font-medium text-gray-700">技術・成果</th>
+              <th className="border border-gray-300 px-4 py-2 text-left font-medium text-gray-700">詳細</th>
             </tr>
           </thead>
           <tbody>
-            <tr>
-              <td className="border border-gray-300 px-4 py-2">2023年6月 - 2023年12月</td>
-              <td className="border border-gray-300 px-4 py-2 font-medium">Eコマースサイト開発</td>
-              <td className="border border-gray-300 px-4 py-2">React + Node.js, 月間売上100万円達成</td>
-            </tr>
-            <tr className="bg-gray-50">
-              <td className="border border-gray-300 px-4 py-2">2023年3月 - 2023年5月</td>
-              <td className="border border-gray-300 px-4 py-2 font-medium">AIチャットボット開発</td>
-              <td className="border border-gray-300 px-4 py-2">Python + TensorFlow, 顧客サポート効率化</td>
-            </tr>
-            <tr>
-              <td className="border border-gray-300 px-4 py-2">2022年9月 - 2023年2月</td>
-              <td className="border border-gray-300 px-4 py-2 font-medium">モバイルアプリ開発</td>
-              <td className="border border-gray-300 px-4 py-2">React Native, 10,000ダウンロード達成</td>
-            </tr>
+            {projects.length > 0
+              ? projects.map((project, index) => (
+                  <tr key={`${project.name}-${index}`} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                    <td className="border border-gray-300 px-4 py-2">{project.period || '期間未設定'}</td>
+                    <td className="border border-gray-300 px-4 py-2 font-medium">{project.name || 'タイトル未設定'}</td>
+                    <td className="border border-gray-300 px-4 py-2">
+                      <div className="space-y-1">
+                        {project.role && <p className="text-sm text-gray-600">役割: {project.role}</p>}
+                        {project.technologies && project.technologies.length > 0 && (
+                          <p className="text-sm text-gray-600">使用技術: {project.technologies.join(', ')}</p>
+                        )}
+                        {project.description && (
+                          <p className="text-sm text-gray-700 whitespace-pre-line">{project.description}</p>
+                        )}
+                        {project.url && (
+                          <p className="text-sm text-indigo-600 break-all">{project.url}</p>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              : renderEmptyRow(3, 'プロジェクト情報が登録されていません。')}
           </tbody>
         </table>
       </div>
 
       {/* Education */}
-      <div className="mb-8">
-        <h2 className="text-xl font-semibold text-gray-800 mb-4 border-b border-gray-300 pb-2">学歴</h2>
-        <table className="w-full border-collapse border border-gray-300 text-sm">
-          <thead>
-            <tr className="bg-gray-100">
-              <th className="border border-gray-300 px-4 py-2 text-left font-medium text-gray-700">期間</th>
-              <th className="border border-gray-300 px-4 py-2 text-left font-medium text-gray-700">学校・専攻</th>
-              <th className="border border-gray-300 px-4 py-2 text-left font-medium text-gray-700">成績・特記事項</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td className="border border-gray-300 px-4 py-2">2021年4月 - 2025年3月（予定）</td>
-              <td className="border border-gray-300 px-4 py-2 font-medium">東京大学 情報科学科</td>
-              <td className="border border-gray-300 px-4 py-2">GPA: 3.8/4.0, 情報工学専攻</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+      {university && (
+        <div className="mb-8">
+          <h2 className="text-xl font-semibold text-gray-800 mb-4 border-b border-gray-300 pb-2">学歴</h2>
+          <table className="w-full border-collapse border border-gray-300 text-sm">
+            <thead>
+              <tr className="bg-gray-100">
+                <th className="border border-gray-300 px-4 py-2 text-left font-medium text-gray-700">期間</th>
+                <th className="border border-gray-300 px-4 py-2 text-left font-medium text-gray-700">学校・専攻</th>
+                <th className="border border-gray-300 px-4 py-2 text-left font-medium text-gray-700">備考</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td className="border border-gray-300 px-4 py-2">{grade || '在籍中'}</td>
+                <td className="border border-gray-300 px-4 py-2 font-medium">{university}</td>
+                <td className="border border-gray-300 px-4 py-2">&nbsp;</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      )}
 
       {/* Certifications */}
       <div>
@@ -124,27 +148,19 @@ export default function TablePdfContent() {
         <table className="w-full border-collapse border border-gray-300 text-sm">
           <thead>
             <tr className="bg-gray-100">
+              <th className="border border-gray-300 px-4 py-2 text-left font-medium text-gray-700">No.</th>
               <th className="border border-gray-300 px-4 py-2 text-left font-medium text-gray-700">資格名</th>
-              <th className="border border-gray-300 px-4 py-2 text-left font-medium text-gray-700">取得年月</th>
-              <th className="border border-gray-300 px-4 py-2 text-left font-medium text-gray-700">スコア・等級</th>
             </tr>
           </thead>
           <tbody>
-            <tr>
-              <td className="border border-gray-300 px-4 py-2 font-medium">AWS認定ソリューションアーキテクト</td>
-              <td className="border border-gray-300 px-4 py-2">2023年12月</td>
-              <td className="border border-gray-300 px-4 py-2">Associate</td>
-            </tr>
-            <tr className="bg-gray-50">
-              <td className="border border-gray-300 px-4 py-2 font-medium">Google Cloud認定</td>
-              <td className="border border-gray-300 px-4 py-2">2023年8月</td>
-              <td className="border border-gray-300 px-4 py-2">Professional</td>
-            </tr>
-            <tr>
-              <td className="border border-gray-300 px-4 py-2 font-medium">TOEIC</td>
-              <td className="border border-gray-300 px-4 py-2">2023年6月</td>
-              <td className="border border-gray-300 px-4 py-2">900点</td>
-            </tr>
+            {certifications.length > 0
+              ? certifications.map((cert, index) => (
+                  <tr key={cert} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                    <td className="border border-gray-300 px-4 py-2 font-medium text-gray-700">{index + 1}</td>
+                    <td className="border border-gray-300 px-4 py-2">{cert}</td>
+                  </tr>
+                ))
+              : renderEmptyRow(2, '資格情報が登録されていません。')}
           </tbody>
         </table>
       </div>

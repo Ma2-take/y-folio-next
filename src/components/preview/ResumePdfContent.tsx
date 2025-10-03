@@ -1,6 +1,34 @@
 'use client';
 
-export default function ResumePdfContent() {
+import { PortfolioPdfData } from '@/types/PortfolioPdf';
+
+interface Props {
+    data: PortfolioPdfData;
+}
+
+export default function ResumePdfContent({ data }: Props) {
+    const { user, portfolio } = data;
+    const displayName = portfolio?.name || user?.name || '氏名未設定';
+    const address = portfolio?.address || user?.address || '未登録';
+    const phone = portfolio?.phone || user?.phone || '未登録';
+    const email = portfolio?.email || user?.email || '未登録';
+    const university = [portfolio?.university || user?.university, portfolio?.faculty || user?.faculty]
+        .filter(Boolean)
+        .join(' / ');
+    const grade = portfolio?.grade || user?.grade || '';
+    const certifications = portfolio?.certifications ?? [];
+    const other = portfolio?.other ?? {};
+    const selfIntroduction = portfolio?.selfIntroduction || user?.selfIntroduction || '自己PRが登録されていません。';
+    const hopeNote =
+        (typeof other.additionalInfo === 'string' && other.additionalInfo.trim().length > 0
+            ? other.additionalInfo
+            : '') ||
+        (typeof other.customQuestions === 'string' && other.customQuestions.trim().length > 0
+            ? other.customQuestions
+            : '特記事項はありません。');
+
+    const createdAt = new Date().toLocaleDateString('ja-JP');
+
     return (
         <div className="bg-white border border-gray-400 rounded-lg p-8 max-w-3xl mx-auto shadow-inner text-gray-900 text-sm">
             {/* Header */}
@@ -9,17 +37,20 @@ export default function ResumePdfContent() {
                     <h1 className="text-2xl font-bold">履歴書</h1>
                 </div>
                 <div className="text-right text-sm">
-                    <div>作成日: 2024年4月1日</div>
+                    <div>作成日: {createdAt}</div>
                 </div>
             </div>
 
             {/* 氏名・写真・基本情報 */}
             <div className="grid grid-cols-3 gap-4 mb-4">
                 <div className="col-span-2">
-                    <div className="mb-2"><span className="font-semibold">氏名</span>: 田中 太郎</div>
-                    <div className="mb-2"><span className="font-semibold">フリガナ</span>: タナカ タロウ</div>
-                    <div className="mb-2"><span className="font-semibold">生年月日</span>: 2002年1月1日（22歳）</div>
-                    <div className="mb-2"><span className="font-semibold">性別</span>: 男性</div>
+                    <div className="mb-2"><span className="font-semibold">氏名</span>: {displayName}</div>
+                    {university && (
+                        <div className="mb-2"><span className="font-semibold">学校・学部</span>: {university}</div>
+                    )}
+                    {grade && (
+                        <div className="mb-2"><span className="font-semibold">学年</span>: {grade}</div>
+                    )}
                 </div>
                 <div className="flex items-center justify-center">
                     <div className="w-24 h-28 bg-gray-200 rounded border border-gray-400 flex items-center justify-center text-gray-400">
@@ -30,55 +61,63 @@ export default function ResumePdfContent() {
 
             {/* 住所・連絡先 */}
             <div className="mb-4">
-                <span className="font-semibold">現住所</span>: 東京都渋谷区
+                <span className="font-semibold">現住所</span>: {address}
             </div>
             <div className="mb-4">
-                <span className="font-semibold">電話番号</span>: 090-1234-5678
+                <span className="font-semibold">電話番号</span>: {phone}
             </div>
             <div className="mb-4">
-                <span className="font-semibold">メールアドレス</span>: tanaka@example.com
+                <span className="font-semibold">メールアドレス</span>: {email}
             </div>
 
             {/* 学歴・職歴 */}
-            <div className="mb-6">
-                <span className="font-semibold">学歴・職歴</span>:
-                <table className="w-full border mt-2">
-                    <tbody>
-                        <tr>
-                            <td className="border px-2 py-1 w-1/4">2021年4月</td>
-                            <td className="border px-2 py-1">東京大学 情報科学科 入学</td>
-                        </tr>
-                        <tr>
-                            <td className="border px-2 py-1">2025年3月（予定）</td>
-                            <td className="border px-2 py-1">東京大学 情報科学科 卒業見込</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
+            {university && (
+                <div className="mb-6">
+                    <span className="font-semibold">学歴・職歴</span>:
+                    <table className="w-full border mt-2">
+                        <tbody>
+                            <tr>
+                                <td className="border px-2 py-1 w-1/3">学歴</td>
+                                <td className="border px-2 py-1">{university}</td>
+                            </tr>
+                            {grade && (
+                                <tr>
+                                    <td className="border px-2 py-1">在籍状況</td>
+                                    <td className="border px-2 py-1">{grade}</td>
+                                </tr>
+                            )}
+                        </tbody>
+                    </table>
+                </div>
+            )}
 
             {/* 資格・免許 */}
             <div className="mb-6">
                 <span className="font-semibold">資格・免許</span>:
-                <ul className="list-disc ml-6 mt-2">
-                    <li>AWS認定ソリューションアーキテクト</li>
-                    <li>TOEIC 900点</li>
-                </ul>
+                {certifications.length > 0 ? (
+                    <ul className="list-disc ml-6 mt-2">
+                        {certifications.map((cert) => (
+                            <li key={cert}>{cert}</li>
+                        ))}
+                    </ul>
+                ) : (
+                    <div className="mt-2 text-gray-500">資格情報が登録されていません。</div>
+                )}
             </div>
 
             {/* 志望動機・自己PR */}
             <div className="mb-6">
                 <span className="font-semibold">志望動機・自己PR</span>:
-                <div className="mt-2 p-3 border rounded bg-gray-50 leading-relaxed">
-                    Web開発とAI技術に強い関心を持ち、ReactやPythonを活用したプロジェクト経験があります。
-                    新しい技術の習得やチームでの協働を大切にしています。
+                <div className="mt-2 p-3 border rounded bg-gray-50 leading-relaxed whitespace-pre-line">
+                    {selfIntroduction}
                 </div>
             </div>
 
             {/* 本人希望欄 */}
             <div className="mb-2">
                 <span className="font-semibold">本人希望欄</span>:
-                <div className="mt-2 p-3 border rounded bg-gray-50 leading-relaxed">
-                    貴社の開発チームでスキルを活かし、成長したいと考えています。
+                <div className="mt-2 p-3 border rounded bg-gray-50 leading-relaxed whitespace-pre-line">
+                    {hopeNote}
                 </div>
             </div>
         </div>

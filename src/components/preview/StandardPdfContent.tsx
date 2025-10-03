@@ -1,104 +1,159 @@
 'use client';
 
-export default function StandardPdfContent() {
+import { PortfolioPdfData } from '@/types/PortfolioPdf';
+
+interface Props {
+  data: PortfolioPdfData;
+}
+
+const EXPERIENCE_LABELS: Record<string, string> = {
+  internship: 'インターンシップ',
+  extracurricular: '課外活動',
+  awards: '受賞歴',
+};
+
+export default function StandardPdfContent({ data }: Props) {
+  const { user, portfolio } = data;
+  const displayName = portfolio?.name || user?.name || '氏名未設定';
+  const universityParts = [portfolio?.university || user?.university, portfolio?.faculty || user?.faculty]
+    .filter(Boolean)
+    .join(' / ');
+  const grade = portfolio?.grade || user?.grade;
+  const contactEmail = portfolio?.email || user?.email || '未登録';
+  const contactPhone = portfolio?.phone || user?.phone || '未登録';
+  const contactAddress = portfolio?.address || user?.address || '未登録';
+  const profileText = portfolio?.selfIntroduction || user?.selfIntroduction || '自己紹介が登録されていません。';
+  const skills = portfolio?.skillTags?.length ? portfolio.skillTags : [];
+  const certifications = portfolio?.certifications?.length ? portfolio.certifications : [];
+  const projects = portfolio?.projects?.length ? portfolio.projects : [];
+  const experience = portfolio?.experience ?? {};
+
   return (
     <>
       {/* Header */}
       <div className="text-center mb-8 pb-6 border-b-2 border-gray-200">
-        <h1 className="text-3xl font-bold text-gray-800 mb-2">田中 太郎</h1>
-        <p className="text-lg text-gray-600 mb-2">東京大学・情報科学科</p>
-        <p className="text-sm text-gray-500">Web開発者 / フルスタックエンジニア</p>
+        <h1 className="text-3xl font-bold text-gray-800 mb-2">{displayName}</h1>
+        {universityParts && (
+          <p className="text-lg text-gray-600 mb-1">{universityParts}</p>
+        )}
+        {grade && <p className="text-sm text-gray-500">{grade}</p>}
       </div>
 
       {/* Contact */}
       <div className="mb-8">
         <h2 className="text-xl font-semibold text-gray-800 mb-4 border-b border-gray-300 pb-2">連絡先</h2>
-        <div className="grid grid-cols-2 gap-4 text-sm">
-          <div><span className="font-medium text-gray-700">メール:</span> tanaka@example.com</div>
-          <div><span className="font-medium text-gray-700">電話:</span> 090-1234-5678</div>
-          <div><span className="font-medium text-gray-700">住所:</span> 東京都渋谷区</div>
-          <div><span className="font-medium text-gray-700">GitHub:</span> github.com/tanaka-taro</div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+          <div><span className="font-medium text-gray-700">メール:</span> {contactEmail}</div>
+          <div><span className="font-medium text-gray-700">電話:</span> {contactPhone}</div>
+          <div className="md:col-span-2"><span className="font-medium text-gray-700">住所:</span> {contactAddress}</div>
         </div>
       </div>
 
       {/* Profile */}
       <div className="mb-8">
         <h2 className="text-xl font-semibold text-gray-800 mb-4 border-b border-gray-300 pb-2">プロフィール</h2>
-        <p className="text-gray-700 leading-relaxed">
-          Web開発とAI技術に強い関心を持つ情報科学科の学生です。React、Node.js、Pythonを使用した
-          フルスタック開発の経験があり、複数のプロジェクトでリーダーシップを発揮してきました。
-          新しい技術の習得に積極的で、チーム開発でのコミュニケーション能力も高く評価されています。
+        <p className="text-gray-700 leading-relaxed whitespace-pre-line">
+          {profileText}
         </p>
       </div>
 
       {/* Skills */}
       <div className="mb-8">
         <h2 className="text-xl font-semibold text-gray-800 mb-4 border-b border-gray-300 pb-2">スキル</h2>
-        <div className="grid grid-cols-2 gap-6">
-          <div>
-            <h3 className="font-medium text-gray-800 mb-2">プログラミング言語</h3>
-            <div className="flex flex-wrap gap-2">
-              <span className="px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded-full">JavaScript</span>
-              <span className="px-3 py-1 bg-green-100 text-green-800 text-sm rounded-full">Python</span>
-              <span className="px-3 py-1 bg-purple-100 text-purple-800 text-sm rounded-full">TypeScript</span>
-              <span className="px-3 py-1 bg-yellow-100 text-yellow-800 text-sm rounded-full">Java</span>
-            </div>
+        {skills.length > 0 ? (
+          <div className="flex flex-wrap gap-2">
+            {skills.map((skill) => (
+              <span
+                key={skill}
+                className="px-3 py-1 bg-indigo-100 text-indigo-800 text-sm rounded-full"
+              >
+                {skill}
+              </span>
+            ))}
           </div>
-          <div>
-            <h3 className="font-medium text-gray-800 mb-2">フレームワーク・ライブラリ</h3>
-            <div className="flex flex-wrap gap-2">
-              <span className="px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded-full">React</span>
-              <span className="px-3 py-1 bg-green-100 text-green-800 text-sm rounded-full">Node.js</span>
-              <span className="px-3 py-1 bg-purple-100 text-purple-800 text-sm rounded-full">Next.js</span>
-              <span className="px-3 py-1 bg-yellow-100 text-yellow-800 text-sm rounded-full">Express</span>
-            </div>
-          </div>
-        </div>
+        ) : (
+          <p className="text-sm text-gray-500">スキル情報が登録されていません。</p>
+        )}
       </div>
 
-      {/* Experience */}
+      {/* Projects / Experience */}
       <div className="mb-8">
-        <h2 className="text-xl font-semibold text-gray-800 mb-4 border-b border-gray-300 pb-2">経験・実績</h2>
-        <div className="space-y-4">
-          <div>
-            <h3 className="font-medium text-gray-800">Eコマースサイト開発</h3>
-            <p className="text-sm text-gray-600 mb-2">2023年6月 - 2023年12月</p>
-            <p className="text-gray-700 text-sm">
-              React + Node.jsを使用したフルスタックEコマースサイトの開発。ユーザー認証、商品管理、
-              決済システムの実装を担当。月間売上100万円を達成。
-            </p>
+        <h2 className="text-xl font-semibold text-gray-800 mb-4 border-b border-gray-300 pb-2">プロジェクト・経験</h2>
+        {projects.length > 0 ? (
+          <div className="space-y-4">
+            {projects.map((project, index) => (
+              <div key={`${project.name}-${index}`}>
+                <h3 className="font-medium text-gray-800">{project.name || 'タイトル未設定'}</h3>
+                {project.period && (
+                  <p className="text-sm text-gray-600 mb-1">{project.period}</p>
+                )}
+                {project.role && (
+                  <p className="text-sm text-gray-600 mb-1">役割: {project.role}</p>
+                )}
+                {project.technologies && project.technologies.length > 0 && (
+                  <p className="text-sm text-gray-600 mb-1">
+                    使用技術: {project.technologies.join(', ')}
+                  </p>
+                )}
+                {project.description && (
+                  <p className="text-gray-700 text-sm whitespace-pre-line">{project.description}</p>
+                )}
+                {project.url && (
+                  <p className="text-sm text-indigo-600 break-all">{project.url}</p>
+                )}
+              </div>
+            ))}
           </div>
-          <div>
-            <h3 className="font-medium text-gray-800">AIチャットボット開発</h3>
-            <p className="text-sm text-gray-600 mb-2">2023年3月 - 2023年5月</p>
-            <p className="text-gray-700 text-sm">
-              Python + TensorFlowを使用した自然言語処理チャットボットの開発。
-              顧客サポート業務の効率化に貢献。
-            </p>
+        ) : (
+          <p className="text-sm text-gray-500">プロジェクト情報が登録されていません。</p>
+        )}
+      </div>
+
+      {/* Additional Experience */}
+      {Object.keys(experience).length > 0 && (
+        <div className="mb-8">
+          <h2 className="text-xl font-semibold text-gray-800 mb-4 border-b border-gray-300 pb-2">その他の経験</h2>
+          <div className="space-y-3 text-sm text-gray-700">
+            {Object.entries(experience).map(([key, value]) => (
+              value ? (
+                <div key={key}>
+                  <h3 className="font-medium text-gray-800 mb-1">{EXPERIENCE_LABELS[key] ?? key}</h3>
+                  <p className="whitespace-pre-line">{String(value)}</p>
+                </div>
+              ) : null
+            ))}
           </div>
         </div>
-      </div>
+      )}
 
       {/* Education */}
-      <div className="mb-8">
-        <h2 className="text-xl font-semibold text-gray-800 mb-4 border-b border-gray-300 pb-2">学歴</h2>
-        <div>
-          <h3 className="font-medium text-gray-800">東京大学 情報科学科</h3>
-          <p className="text-sm text-gray-600">2021年4月 - 2025年3月（予定）</p>
-          <p className="text-gray-700 text-sm mt-1">
-            情報工学、アルゴリズム、データベース、ソフトウェア工学を専攻。GPA: 3.8/4.0
-          </p>
+      {universityParts && (
+        <div className="mb-8">
+          <h2 className="text-xl font-semibold text-gray-800 mb-4 border-b border-gray-300 pb-2">学歴</h2>
+          <div>
+            <h3 className="font-medium text-gray-800">{universityParts}</h3>
+            {grade && <p className="text-sm text-gray-600">{grade}</p>}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Certifications */}
       <div>
         <h2 className="text-xl font-semibold text-gray-800 mb-4 border-b border-gray-300 pb-2">資格・認定</h2>
-        <div className="flex flex-wrap gap-2">
-          <span className="px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded-full">AWS認定ソリューションアーキテクト</span>
-          <span className="px-3 py-1 bg-green-100 text-green-800 text-sm rounded-full">Google Cloud認定</span>
-          <span className="px-3 py-1 bg-purple-100 text-purple-800 text-sm rounded-full">TOEIC 900点</span>
-        </div>
+        {certifications.length > 0 ? (
+          <div className="flex flex-wrap gap-2">
+            {certifications.map((cert) => (
+              <span
+                key={cert}
+                className="px-3 py-1 bg-emerald-100 text-emerald-800 text-sm rounded-full"
+              >
+                {cert}
+              </span>
+            ))}
+          </div>
+        ) : (
+          <p className="text-sm text-gray-500">資格情報が登録されていません。</p>
+        )}
       </div>
     </>
   );

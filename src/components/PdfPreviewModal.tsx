@@ -6,6 +6,8 @@ import StandardPdfContent from '@/components/preview/StandardPdfContent';
 import TablePdfContent from '@/components/preview/TablePdfContent';
 import ResumePdfContent from '@/components/preview/ResumePdfContent';
 import CareerPdfContent from '@/components/preview/CareerPdfContent';
+import { fetchPortfolioPdfData } from '@/lib/api/portfolio';
+import { PortfolioPdfData } from '@/types/PortfolioPdf';
 
 interface Props {
     pdfFormat: 'standard' | 'table' | 'resume' | 'career';
@@ -24,50 +26,50 @@ export default function PdfPreviewModal({
     onPrint,
     onDownload
 }: Props) {
-    const [isLoading, setIsLoading] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-
-    // コンポーネントのマウント状態を追跡
-    const [isMounted, setIsMounted] = useState(true);
-
-    useEffect(() => {
-        setIsMounted(true);
-        
-        // クリーンアップ関数
-        return () => {
-            setIsMounted(false);
-        };
-    }, []);
-
-    // 安全な状態更新関数
-    const safeSetState = (callback: () => void) => {
-        if (isMounted) {
-            callback();
-        }
-    };
+    const [portfolioData, setPortfolioData] = useState<PortfolioPdfData | null>(null);
+    const hasPortfolio = Boolean(portfolioData?.portfolio);
 
     const handleFormatChange = (newFormat: 'standard' | 'table' | 'resume' | 'career') => {
-        safeSetState(() => {
-            setIsLoading(true);
-            setError(null);
-            setPdfFormat(newFormat);
-        });
+        setPdfFormat(newFormat);
     };
 
     useEffect(() => {
-        if (isLoading) {
-            // 非同期処理の完了を待つ
-            const timer = setTimeout(() => {
-                safeSetState(() => {
-                    setIsLoading(false);
-                });
-            }, 500);
-
-            return () => {
-                clearTimeout(timer);
-            };
+        if (!userId) {
+            setPortfolioData(null);
+            setIsLoading(false);
+            setError('ユーザーIDが見つかりません');
+            return;
         }
-    }, [isLoading]);
+
+        let isActive = true;
+
+        const load = async () => {
+            setIsLoading(true);
+            setError(null);
+
+            try {
+                const data = await fetchPortfolioPdfData(userId);
+                if (!isActive) return;
+                setPortfolioData(data);
+            } catch (err) {
+                if (!isActive) return;
+                const message = err instanceof Error ? err.message : 'ポートフォリオ情報の取得に失敗しました';
+                setError(message);
+                setPortfolioData(null);
+            } finally {
+                if (!isActive) return;
+                setIsLoading(false);
+            }
+        };
+
+        void load();
+
+        return () => {
+            isActive = false;
+        };
+    }, [userId]);
 
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[60] p-4">
@@ -124,12 +126,14 @@ export default function PdfPreviewModal({
                         </div>
                     ) : error ? (
                         <div className="text-red-600 p-4 text-center">{error}</div>
+                    ) : !portfolioData || !hasPortfolio ? (
+                        <div className="text-gray-500 p-4 text-center">ポートフォリオ情報が見つかりませんでした。</div>
                     ) : (
                         <>
-                            {pdfFormat === 'standard' && <StandardPdfContent userId={userId} />}
-                            {pdfFormat === 'table' && <TablePdfContent userId={userId} />}
-                            {pdfFormat === 'resume' && <ResumePdfContent userId={userId} />}
-                            {pdfFormat === 'career' && <CareerPdfContent userId={userId} />}
+                            {pdfFormat === 'standard' && <StandardPdfContent data={portfolioData} />}
+                            {pdfFormat === 'table' && <TablePdfContent data={portfolioData} />}
+                            {pdfFormat === 'resume' && <ResumePdfContent data={portfolioData} />}
+                            {pdfFormat === 'career' && <CareerPdfContent data={portfolioData} />}
                         </>
                     )}
                 </div>
