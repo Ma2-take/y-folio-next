@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
 
     // 1. ユーザー情報 upsert
     const user = await prisma.user.upsert({
-      where: { id: data.user.id },
+      where: { id: data.user_id },
       update: {
         email: data.user.email,     // 最新のメールで更新
         name: data.user.name,
