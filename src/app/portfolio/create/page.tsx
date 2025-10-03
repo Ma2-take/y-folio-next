@@ -196,20 +196,62 @@ const PortfolioCreatePage = () => {
     if (!user) return;
 
     try {
+      const resolvedUserId = user.uid;
+
+      const payload = {
+        user_id: resolvedUserId,
+        user: {
+          id: resolvedUserId,
+          uid: resolvedUserId,
+          name: form.name,
+          email: form.email,
+          phone: form.phone,
+          address: form.address,
+          university: form.university,
+          department: form.faculty,
+          grade: form.grade,
+          selfIntroduction: form.selfIntroduction,
+        },
+        portfolio: {
+          name: form.name,
+          university: form.university,
+          faculty: form.faculty,
+          grade: form.grade,
+          email: form.email,
+          phone: form.phone,
+          address: form.address,
+          selfIntroduction: form.selfIntroduction,
+          skillTags: form.skillTags,
+          certifications: form.certifications,
+          projects: form.projects,
+          experience: form.experience,
+          other: form.other,
+          publication: form.publication,
+          visibilitySettings: form.visibilitySettings,
+        },
+        projects: form.projects,
+        visibilitySettings: form.visibilitySettings,
+      };
+
       const res = await fetch("/api/portfolio/save", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          userId: user.uid,
-          ...form,
-        }),
+        body: JSON.stringify(payload),
       });
-      if (!res.ok) throw new Error("保存に失敗しました");
-      const data = await res.json();
+      const responseBody = await res.json().catch(() => null);
+      if (!res.ok) {
+        const message = typeof responseBody?.error === "string"
+          ? responseBody.error
+          : `保存に失敗しました (status ${res.status})`;
+        throw new Error(message);
+      }
+      const data = responseBody;
       // 保存成功時にプレビュー画面へ遷移
       router.push(`/portfolio/preview?id=${data.portfolio.id}`);
     } catch (e) {
-      alert("保存に失敗しました");
+      console.error("保存エラー:", e);
+      const message = e instanceof Error ? e.message : "保存に失敗しました";
+      alert(message);
     }
   };
 

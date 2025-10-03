@@ -3,7 +3,7 @@
 import { Briefcase, ArrowLeft, Save, Code, UserIcon, Projector, Cog, Plus, X, Eye, EyeOff }
   from 'lucide-react';
 import React, { useState, useRef, useEffect } from 'react';
-import { DbUser, User } from '@/types/User';
+import { User } from '@/types/User';
 import { Project } from '@/types/Project';
 import { Portfolio } from '@/types/Portforio';
 import { testPortfolio } from '@/data/TestPortfolio';
@@ -12,7 +12,6 @@ import { testProjects } from '@/data/TestProjects';
 import { testVisibilitySettings } from '@/data/TestVisibiltySettings';
 import { fetchUser } from '@/lib/api/user';
 import { useAuth } from '@/hooks/useAuth';
-import test from 'node:test';
 
 // フォーム状態の型定義
 interface PortfolioForm {
@@ -28,10 +27,9 @@ const initialForm: PortfolioForm = {
   user: testUser,
   portfolio: testPortfolio,
   projects: testProjects,
-  isDirty: true,
+  isDirty: false,
   isSubmitting: true,
-}
-
+};
 // 可視性設定の型定義
 interface VisibilitySettings {
   basicInfo: boolean;  // ユーザー情報の可視性
@@ -51,8 +49,7 @@ const PortfolioEditPage = () => {
   const [saveMessage, setSaveMessage] = useState("");
 
   const { user, loading } = useAuth();
-  const [form, setForm] = useState<PortfolioForm>(null);
-  const [dbUser, setDbUser] = useState<DbUser>(null);
+  const [form, setForm] = useState<PortfolioForm>(initialForm);
 
   useEffect(() => {
     if (loading) return; // ローディング中は何もしない
@@ -60,23 +57,30 @@ const PortfolioEditPage = () => {
     const uid = user?.uid || "";
     fetchUser(uid).then((data) => {
       console.log("APIレスポンス:", data);
-      setDbUser(data.user);
-
       // DBユーザーを form に反映
-      setForm((prev) => ({
-        ...prev,
-        user: data.user,
+      setForm({
+        user: data,
         portfolio: testPortfolio,
         projects: testProjects,
         isDirty: false,
         isSubmitting: false,
-      }));
+      });
     });
   }, [user, loading]);
 
-  if (loading || !form) {
+  if (loading || form.isSubmitting) {
     return <div>Loading...</div>;
   }
+
+  const birthDateValue = (() => {
+    const birthDate = form.user?.birthDate;
+    if (!birthDate) return '';
+    if (birthDate instanceof Date) {
+      return birthDate.toISOString().slice(0, 10);
+    }
+    const parsed = new Date(birthDate);
+    return Number.isNaN(parsed.getTime()) ? '' : parsed.toISOString().slice(0, 10);
+  })();
 
   // 基本情報ハンドラ
   const handleBasicInfoChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -223,10 +227,33 @@ const PortfolioEditPage = () => {
     setIsSaving(true);
     setSaveMessage("");
     try {
+      if (!form?.user) {
+        setSaveMessage("ユーザー情報の取得に失敗しました");
+        return;
+      }
+
+      const resolvedUserId = form.user.id || form.user.uid || user?.uid || "";
+
+      if (!resolvedUserId) {
+        setSaveMessage("ユーザーIDが特定できません");
+        return;
+      }
+
+      const payload = {
+        user_id: resolvedUserId,
+        user: {
+          ...form.user,
+          uid: form.user.uid || user?.uid || resolvedUserId,
+        },
+        portfolio: form.portfolio,
+        projects: form.projects,
+        visibilitySettings,
+      };
+
       const res = await fetch("/api/portfolio/save", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify(payload),
       });
       if (res.ok) {
         setSaveMessage("保存しました");
@@ -333,7 +360,7 @@ const PortfolioEditPage = () => {
                     <label className="block text-sm font-medium text-gray-700 mb-2">生年月日</label>
                     <input type="date" name="birthDate"
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                      value={form.user?.birthDate?.toDateString() || ''}
+                      value={birthDateValue}
                       onChange={handleBasicInfoChange} />
                   </div>
                 </div>
