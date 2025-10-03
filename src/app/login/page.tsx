@@ -187,9 +187,6 @@ export default function LoginPage() {
           <a href="#" className="text-indigo-600 hover:underline">
             パスワードをお忘れですか？
           </a>
-          <a href="/signup" className="text-indigo-600 hover:underline">
-            新規登録はこちら
-          </a>
         </div>
 
         {/* 区切り線 */}
