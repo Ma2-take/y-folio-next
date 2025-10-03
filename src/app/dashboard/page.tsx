@@ -54,6 +54,7 @@ const DashboardPage = () => {
         <PdfPreviewModal
           pdfFormat={pdfFormat}
           setPdfFormat={setPdfFormat}
+          userId={testUser.id} // ユーザーIDを必ず渡す
           close={closePdfPreview}
           onPrint={() => window.print()}
           onDownload={() => alert('ダウンロード機能は未実装です')}

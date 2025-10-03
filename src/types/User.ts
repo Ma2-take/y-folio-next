@@ -1,29 +1,24 @@
 export interface User {
-    id: string
-    email: string
-    password_hash: string
-    name: string
-    university?: string | null
-    grade?: string | null
-    department?: string | null
-    phone?: string | null
-    address?: string | null
-    birthDate?: Date | null
-    selfIntroduction?: string | null
-    is_active: boolean
-    email_verified: boolean
-    verification_token?: string | null
-    reset_token?: string | null
-    reset_token_expires?: Date | null
-    certifications?: string | null
-    awards?: string | null
-    created_at: Date
-    updated_at: Date
+    id: string;
+    name: string;
+    email: string;
+    phone?: string;
+    address?: string;
+    github?: string;
+    education?: string;
+    profile?: string;
+    careers?: Career[];
+    skills?: {
+        programming: string[];
+        frameworks: string[];
+    };
+    certifications?: string[];
 }
 
-export interface DbUser {
-    id: string;           // = uid
-    email: string;
-    name: string;
-    contactEmail?: string;
-};
+interface Career {
+    company: string;
+    position?: string;
+    startDate: string;
+    endDate?: string;
+    descriptions: string[];
+}

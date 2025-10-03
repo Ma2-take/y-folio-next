@@ -1,36 +1,80 @@
-import { NextRequest, NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
+import { NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
 
-const prisma = new PrismaClient();
-
-export async function POST(request: NextRequest) {
-    const data = await request.json(); 
+export async function POST(request: Request) {
     try {
+        const data = await request.json();
+        
+        console.log('Received request with data:', data); // デバッグログ
+
+        const { uid } = data;
+
+        if (!uid) {
+            return NextResponse.json(
+                { error: 'ユーザーIDが必要です' },
+                { status: 400 }
+            );
+        }
+
+        console.log('Searching for user with uid:', uid); // デバッグログ
+
         const account = await prisma.account.findUnique({
             where: {
                 provider_providerUserId: {
                     provider: "google",
-                    providerUserId: data.uid,
-                },
+                    providerUserId: uid
+                }
             },
-            include: { user: true },
+            include: {
+                user: {
+                    include: {
+                        portfolios: {
+                            include: {
+                                skills: true,
+                                certifications: true,
+                                careers: true
+                            }
+                        }
+                    }
+                }
+            }
         });
+
+        console.log('Database query result:', account); // デバッグログ
 
         if (!account || !account.user) {
             return NextResponse.json(
-                { success: false, message: "ユーザーが見つかりません" },
+                { error: 'ユーザーが見つかりません' },
                 { status: 404 }
             );
         }
 
-        return NextResponse.json({ success: true, user: account.user });
-    } catch (e) {
-        console.error("取得エラー:", e);
+        // ユーザーデータを整形
+        const userData = {
+            ...account.user,
+            portfolio: account.user.portfolios?.[0] || null,
+            skills: account.user.portfolios?.[0]?.skills || [],
+            certifications: account.user.portfolios?.[0]?.certifications || [],
+            careers: account.user.portfolios?.[0]?.careers || []
+        };
+
+        console.log('Sending response:', userData); // デバッグログ
+
+        return NextResponse.json(userData);
+
+    } catch (error) {
+        console.error('API Error:', {
+            error,
+            message: error instanceof Error ? error.message : 'Unknown error',
+            stack: error instanceof Error ? error.stack : undefined
+        });
+
         return NextResponse.json(
-            { success: false, error: String(e) },
+            { 
+                error: 'データの取得に失敗しました',
+                details: error instanceof Error ? error.message : 'Unknown error'
+            },
             { status: 500 }
         );
-    } finally {
-        await prisma.$disconnect();
     }
 }

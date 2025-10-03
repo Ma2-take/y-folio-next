@@ -20,6 +20,8 @@ model Account {
   provider      String   // "google", "github", "twitter" など
   providerUserId String   // Googleならsub, GitHubならid など
   userId        String
+  address       String
+  phone         String
 
   user          User     @relation(fields: [userId], references: [id])
 
