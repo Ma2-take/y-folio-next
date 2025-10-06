@@ -6,10 +6,6 @@ import React, { useState, useRef, useEffect } from 'react';
 import { User } from '@/types/User';
 import { Project } from '@/types/Project';
 import { Portfolio } from '@/types/Portforio';
-import { testPortfolio } from '@/data/TestPortfolio';
-import { testUser } from '@/data/TestUser';
-import { testProjects } from '@/data/TestProjects';
-import { testVisibilitySettings } from '@/data/TestVisibiltySettings';
 import { fetchUser } from '@/lib/api/user';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -22,14 +18,6 @@ interface PortfolioForm {
   isSubmitting: boolean;
 }
 
-// TODO: 実際のデータを取得するロジックを実装する
-const initialForm: PortfolioForm = {
-  user: testUser,
-  portfolio: testPortfolio,
-  projects: testProjects,
-  isDirty: false,
-  isSubmitting: true,
-};
 // 可視性設定の型定義
 interface VisibilitySettings {
   basicInfo: boolean;  // ユーザー情報の可視性
@@ -41,32 +29,281 @@ interface VisibilitySettings {
   other: boolean; // その他の自由記述欄の可視性
 }
 
+const createEmptyUser = (): User => ({
+  id: "",
+  name: "",
+  email: "",
+  phone: "",
+  address: "",
+  university: "",
+  department: "",
+  grade: "",
+  selfIntroduction: "",
+});
+
+const createEmptyPortfolio = (userId = ""): Portfolio => ({
+  id: "",
+  user_id: userId,
+  name: "",
+  university: "",
+  faculty: "",
+  grade: "",
+  email: "",
+  phone: "",
+  address: "",
+  selfIntroduction: "",
+  skills: [],
+  skillTags: [],
+  certifications: "",
+  internship: "",
+  extracurricular: "",
+  experience: "",
+  awards: "",
+  customQuestions: "",
+  additionalInfo: "",
+  isPublic: false,
+  autoDeleteAfterOneYear: false,
+  visibilitySettings: {},
+  projects: [],
+  rawProjects: null,
+});
+
+const defaultVisibilitySettings: VisibilitySettings = {
+  basicInfo: true,
+  phone: false,
+  address: false,
+  skills: true,
+  projects: true,
+  experience: true,
+  other: true,
+};
+
+const initialForm: PortfolioForm = {
+  user: createEmptyUser(),
+  portfolio: createEmptyPortfolio(),
+  projects: [],
+  isDirty: false,
+  isSubmitting: true,
+};
+
+const ensureString = (value: unknown, fallback: string | null | undefined = ""): string => {
+  const fallbackString = typeof fallback === "string" ? fallback : fallback == null ? "" : String(fallback);
+  if (typeof value === "string") return value;
+  if (value == null) return fallbackString;
+  return String(value);
+};
+
+const ensureBoolean = (value: unknown, fallback: boolean | null | undefined = false): boolean => {
+  if (typeof value === "boolean") return value;
+  if (typeof fallback === "boolean") return fallback;
+  return false;
+};
+
+const ensureStringArray = (value: unknown): string[] => {
+  if (Array.isArray(value)) {
+    return value
+      .filter((item): item is string => typeof item === "string")
+      .map((item) => item.trim())
+      .filter(Boolean);
+  }
+  if (typeof value === "string") {
+    return value
+      .split(",")
+      .map((item) => item.trim())
+      .filter(Boolean);
+  }
+  return [];
+};
+
+const parseProjectsFromSource = (source: unknown): Project[] => {
+  const normalizeProject = (record: Record<string, unknown>, index: number): Project => {
+    const fallbackId = typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
+      ? crypto.randomUUID()
+      : `project-${index}`;
+    const id = ensureString(record.id, fallbackId) || fallbackId;
+    const name = ensureString(record.name);
+    const description = ensureString(record.description);
+    const urlValue = record.url;
+
+    return {
+      id,
+      name,
+      description,
+      url: urlValue == null ? undefined : ensureString(urlValue),
+    };
+  };
+
+  const handleArray = (arr: unknown[]): Project[] =>
+    arr
+      .map((item, index) => (item && typeof item === "object" && !Array.isArray(item)
+        ? normalizeProject(item as Record<string, unknown>, index)
+        : null))
+      .filter((item): item is Project => item !== null);
+
+  if (typeof source === "string") {
+    try {
+      const parsed = JSON.parse(source);
+      return parseProjectsFromSource(parsed);
+    } catch {
+      return [];
+    }
+  }
+
+  if (Array.isArray(source)) {
+    return handleArray(source);
+  }
+
+  if (source && typeof source === "object" && !Array.isArray(source)) {
+    return handleArray([source]);
+  }
+
+  return [];
+};
+
+const mapVisibilitySettings = (source: Record<string, unknown> | null | undefined): VisibilitySettings => ({
+  basicInfo: ensureBoolean(source?.basicInfo, defaultVisibilitySettings.basicInfo),
+  phone: ensureBoolean(source?.phone, defaultVisibilitySettings.phone),
+  address: ensureBoolean(source?.address, defaultVisibilitySettings.address),
+  skills: ensureBoolean(source?.skills, defaultVisibilitySettings.skills),
+  projects: ensureBoolean(source?.projects, defaultVisibilitySettings.projects),
+  experience: ensureBoolean(source?.experience, defaultVisibilitySettings.experience),
+  other: ensureBoolean(source?.other, defaultVisibilitySettings.other),
+});
+
+const mapPortfolioResponse = (portfolio: Portfolio | null | undefined, userId: string): Portfolio => {
+  const base = createEmptyPortfolio(userId);
+  if (!portfolio) return base;
+
+  const skills = ensureStringArray(portfolio.skills ?? portfolio.skillTags);
+  const projects = parseProjectsFromSource((portfolio.projects as unknown) ?? portfolio.rawProjects);
+  return {
+    ...base,
+    ...portfolio,
+    id: ensureString(portfolio.id, base.id),
+    user_id: ensureString(portfolio.user_id, userId),
+    name: ensureString(portfolio.name, base.name),
+    university: ensureString(portfolio.university, base.university),
+    faculty: ensureString(portfolio.faculty, base.faculty),
+    grade: ensureString(portfolio.grade, base.grade),
+    email: ensureString(portfolio.email, base.email),
+    phone: ensureString(portfolio.phone, base.phone),
+    address: ensureString(portfolio.address, base.address),
+    selfIntroduction: ensureString(portfolio.selfIntroduction, base.selfIntroduction),
+    skills,
+    skillTags: skills,
+    certifications: ensureString(portfolio.certifications, base.certifications),
+    internship: ensureString(portfolio.internship, base.internship),
+    extracurricular: ensureString(portfolio.extracurricular, base.extracurricular),
+    experience: ensureString(portfolio.experience, base.experience),
+    awards: ensureString(portfolio.awards, base.awards),
+    customQuestions: ensureString(portfolio.customQuestions, base.customQuestions),
+    additionalInfo: ensureString(portfolio.additionalInfo, base.additionalInfo),
+    isPublic: ensureBoolean(portfolio.isPublic, base.isPublic),
+    autoDeleteAfterOneYear: ensureBoolean(portfolio.autoDeleteAfterOneYear, !!base.autoDeleteAfterOneYear),
+    visibilitySettings: portfolio.visibilitySettings ?? base.visibilitySettings,
+    projects,
+    rawProjects: typeof portfolio.rawProjects === "string" ? portfolio.rawProjects : base.rawProjects,
+  };
+};
+
+const mapUserResponse = (data: Partial<User> | undefined, fallbackId: string): User => {
+  const base = createEmptyUser();
+  if (!data) {
+    return { ...base, id: fallbackId };
+  }
+
+  return {
+    ...base,
+    ...data,
+    id: ensureString(data.id, fallbackId || base.id),
+    name: ensureString(data.name, base.name),
+    email: ensureString(data.email, base.email),
+    phone: ensureString(data.phone, base.phone),
+    address: ensureString(data.address, base.address),
+    university: ensureString(data.university, base.university),
+    department: ensureString(data.department, base.department),
+    grade: ensureString(data.grade, base.grade),
+    selfIntroduction: ensureString(data.selfIntroduction, base.selfIntroduction),
+  };
+};
+
+type UserWithPortfolio = User & {
+  portfolio?: Portfolio | null;
+};
+
 const PortfolioEditPage = () => {
-  const [visibilitySettings, setVisibilitySettings] = useState<VisibilitySettings>(testVisibilitySettings);
+  const [visibilitySettings, setVisibilitySettings] = useState<VisibilitySettings>(defaultVisibilitySettings);
   const [skillInput, setSkillInput] = useState("");
   const skillInputRef = useRef<HTMLInputElement>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState("");
+  const [loadError, setLoadError] = useState("");
 
   const { user, loading } = useAuth();
   const [form, setForm] = useState<PortfolioForm>(initialForm);
 
   useEffect(() => {
-    if (loading) return; // ローディング中は何もしない
-    console.log(user)
-    const uid = user?.uid || "";
-    fetchUser(uid).then((data) => {
-      console.log("APIレスポンス:", data);
-      // DBユーザーを form に反映
+    if (loading) return;
+
+    let isMounted = true;
+    const providerUid = user?.uid;
+
+    if (!providerUid) {
+      setLoadError("ユーザー情報を取得できませんでした。");
+      setVisibilitySettings(defaultVisibilitySettings);
       setForm({
-        user: data,
-        portfolio: testPortfolio,
-        projects: testProjects,
+        user: mapUserResponse(undefined, ""),
+        portfolio: createEmptyPortfolio(),
+        projects: [],
         isDirty: false,
         isSubmitting: false,
       });
-    });
-  }, [user, loading]);
+      return () => {
+        isMounted = false;
+      };
+    }
+
+    setLoadError("");
+    setForm((prev) => ({ ...prev, isSubmitting: true }));
+
+    fetchUser(providerUid)
+      .then((apiResponse) => {
+        if (!isMounted) return;
+
+  const response = apiResponse as UserWithPortfolio;
+        const mappedUser = mapUserResponse(response, providerUid);
+        const resolvedUserId = mappedUser.id || providerUid;
+        const mappedPortfolio = mapPortfolioResponse(response.portfolio, resolvedUserId);
+        const nextVisibility = mapVisibilitySettings(mappedPortfolio.visibilitySettings as Record<string, unknown> | null | undefined);
+
+        setVisibilitySettings(nextVisibility);
+        setForm({
+          user: mappedUser,
+          portfolio: mappedPortfolio,
+          projects: mappedPortfolio.projects ?? [],
+          isDirty: false,
+          isSubmitting: false,
+        });
+      })
+      .catch((error) => {
+        console.error("ユーザーデータの取得に失敗しました:", error);
+        if (!isMounted) return;
+
+        setLoadError("ユーザー情報の取得に失敗しました。");
+        setVisibilitySettings(defaultVisibilitySettings);
+        setForm({
+          user: mapUserResponse(undefined, providerUid),
+          portfolio: createEmptyPortfolio(providerUid),
+          projects: [],
+          isDirty: false,
+          isSubmitting: false,
+        });
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [loading, user]);
 
   if (loading || form.isSubmitting) {
     return <div>Loading...</div>;
@@ -95,7 +332,6 @@ const PortfolioEditPage = () => {
     }));
   };
 
-  // TODO: 可視性設定の変更
   const handleVisibilityChange = (selected: keyof VisibilitySettings) => {
     setVisibilitySettings((prev) => ({
       ...prev,
@@ -110,29 +346,39 @@ const PortfolioEditPage = () => {
   const handleSkillInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter" && skillInput.trim()) {
       e.preventDefault();
-      if (!form?.portfolio?.skills?.includes(skillInput.trim())) {
-        setForm((prev) => ({
-          ...prev,
-          portfolio: {
-            ...prev.portfolio,
-            skills: [...(prev.portfolio.skills || []), skillInput.trim()],
-          },
-          isDirty: true,
-        }));
+      const trimmed = skillInput.trim();
+      if (!form?.portfolio?.skills?.includes(trimmed)) {
+        setForm((prev) => {
+          const updatedSkills = [...(prev.portfolio.skills ?? []), trimmed];
+          return {
+            ...prev,
+            portfolio: {
+              ...prev.portfolio,
+              skills: updatedSkills,
+              skillTags: updatedSkills,
+            },
+            isDirty: true,
+          };
+        });
       }
       setSkillInput("");
     }
   };
   // スキルタグ削除
   const handleRemoveSkillTag = (idx: number) => {
-    setForm((prev) => ({
-      ...prev,
-      skills: {
-        ...prev.portfolio.skills,
-        skillTags: prev.portfolio?.skills?.filter((_, i) => i !== idx),
-      },
-      isDirty: true,
-    }));
+    setForm((prev) => {
+      const currentSkills = prev.portfolio.skills ?? [];
+      const updatedSkills = currentSkills.filter((_, i) => i !== idx);
+      return {
+        ...prev,
+        portfolio: {
+          ...prev.portfolio,
+          skills: updatedSkills,
+          skillTags: updatedSkills,
+        },
+        isDirty: true,
+      };
+    });
     // フォーカスを戻す
     setTimeout(() => skillInputRef.current?.focus(), 0);
   };
@@ -142,8 +388,8 @@ const PortfolioEditPage = () => {
     const { name, value } = e.target;
     setForm((prev) => ({
       ...prev,
-      skills: {
-        ...prev.portfolio.skills,
+      portfolio: {
+        ...prev.portfolio,
         [name]: value,
       },
       isDirty: true,
@@ -156,7 +402,15 @@ const PortfolioEditPage = () => {
       const newProjects = prev.projects.map((p, i) =>
         i === idx ? { ...p, [field]: value } : p
       );
-      return { ...prev, projects: newProjects, isDirty: true };
+      return {
+        ...prev,
+        projects: newProjects,
+        portfolio: {
+          ...prev.portfolio,
+          projects: newProjects,
+        },
+        isDirty: true,
+      };
     });
   };
 
@@ -200,7 +454,7 @@ const PortfolioEditPage = () => {
   };
 
   // 可視性トグルコンポーネント
-  const VisibilityToggle = ({ isVisible, onChange }: { section: string; isVisible: boolean; onChange: () => void }) => (
+  const VisibilityToggle = ({ isVisible, onChange }: { isVisible: boolean; onChange: () => void }) => (
     <div className="flex items-center justify-between mb-4">
       <div className="flex items-center">
         {isVisible ? <Eye className="w-4 h-4 text-green-600 mr-2" /> : <EyeOff className="w-4 h-4 text-gray-400 mr-2" />}
@@ -245,7 +499,13 @@ const PortfolioEditPage = () => {
           ...form.user,
           uid: form.user.uid || user?.uid || resolvedUserId,
         },
-        portfolio: form.portfolio,
+        portfolio: {
+          ...form.portfolio,
+          user_id: resolvedUserId,
+          skillTags: form.portfolio.skills ?? [],
+          projects: form.projects,
+          visibilitySettings,
+        },
         projects: form.projects,
         visibilitySettings,
       };
@@ -256,9 +516,20 @@ const PortfolioEditPage = () => {
         body: JSON.stringify(payload),
       });
       if (res.ok) {
+        const result = await res.json().catch(() => null);
         setSaveMessage("保存しました");
-        setForm((prev) => ({ ...prev }));
+        setForm((prev) => ({
+          ...prev,
+          portfolio: {
+            ...prev.portfolio,
+            id: ensureString(result?.portfolio?.id, prev.portfolio.id),
+            user_id: ensureString(result?.portfolio?.userId, resolvedUserId),
+          },
+          isDirty: false,
+        }));
       } else {
+        const errorText = await res.text();
+        console.error("保存失敗:", errorText);
         setSaveMessage("保存に失敗しました");
       }
     } catch (e) {
@@ -303,6 +574,11 @@ const PortfolioEditPage = () => {
           <div className="w-1/2">
             <div className="form-section bg-white rounded-lg shadow-md p-8">
               <h2 className="text-2xl font-bold text-gray-800 mb-8">ポートフォリオ編集</h2>
+              {loadError && (
+                <div className="mb-4 p-3 bg-red-100 border border-red-300 text-red-700 rounded-lg text-sm">
+                  {loadError}
+                </div>
+              )}
               {saveMessage && (
                 <div className="mb-4 p-3 bg-green-100 border border-green-400 text-green-700 rounded-lg text-sm">
                   {saveMessage}
@@ -315,7 +591,6 @@ const PortfolioEditPage = () => {
                     基本情報
                   </h3>
                   <VisibilityToggle
-                    section="basicInfo"
                     isVisible={visibilitySettings.basicInfo}
                     onChange={() => handleVisibilityChange('basicInfo')}
                   />
@@ -383,7 +658,6 @@ const PortfolioEditPage = () => {
                         onChange={handleBasicInfoChange} />
                     </div>
                     <VisibilityToggle
-                      section="address"
                       isVisible={visibilitySettings.address}
                       onChange={() => handleVisibilityChange('address')}
                     />
@@ -397,7 +671,6 @@ const PortfolioEditPage = () => {
                         value={form.user.phone || ''} onChange={handleBasicInfoChange} />
                     </div>
                     <VisibilityToggle
-                      section="phone"
                       isVisible={visibilitySettings.phone}
                       onChange={() => handleVisibilityChange('phone')}
                     />
@@ -422,7 +695,6 @@ const PortfolioEditPage = () => {
                     <Code className="w-5 h-5 mr-2 text-indigo-600" />スキル・技術
                   </h3>
                   <VisibilityToggle
-                    section="skills"
                     isVisible={visibilitySettings.skills}
                     onChange={() => handleVisibilityChange('skills')}
                   />
@@ -468,7 +740,6 @@ const PortfolioEditPage = () => {
                     <Projector className="w-5 h-5 mr-2 text-indigo-600" />プロジェクト・実績
                   </h3>
                   <VisibilityToggle
-                    section="projects"
                     isVisible={visibilitySettings.projects}
                     onChange={() => handleVisibilityChange('projects')}
                   />
@@ -494,7 +765,6 @@ const PortfolioEditPage = () => {
                     <Briefcase className="w-5 h-5 mr-2 text-indigo-600" />経験・活動
                   </h3>
                   <VisibilityToggle
-                    section="experience"
                     isVisible={visibilitySettings.experience}
                     onChange={() => handleVisibilityChange('experience')}
                   />
@@ -536,7 +806,6 @@ const PortfolioEditPage = () => {
                     <Plus className="w-5 h-5 mr-2 text-indigo-600" />その他（自由記述欄）
                   </h3>
                   <VisibilityToggle
-                    section="other"
                     isVisible={visibilitySettings.other}
                     onChange={() => handleVisibilityChange('other')}
                   />
@@ -549,7 +818,7 @@ const PortfolioEditPage = () => {
                       rows={4}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                       placeholder="企業が設定したオリジナル設問があれば、ここに回答を記載してください。例：「当社のサービスについて知っていることを教えてください」「あなたの強みを活かせる職種は何だと思いますか？」"
-                      value={""}
+                      value={form.portfolio.customQuestions || ''}
                       onChange={handleOtherChange}
                     ></textarea>
                     <p className="text-sm text-gray-500 mt-1">企業が設定したオリジナル設問への回答を記載してください</p>
@@ -561,7 +830,7 @@ const PortfolioEditPage = () => {
                       rows={3}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                       placeholder="その他、アピールしたい情報や企業に伝えたいことがあれば記載してください"
-                      value={""}
+                      value={form.portfolio.additionalInfo || ''}
                       onChange={handleOtherChange}
                     ></textarea>
                     <p className="text-sm text-gray-500 mt-1">その他、アピールしたい情報や企業に伝えたいことがあれば記載してください</p>
@@ -579,7 +848,7 @@ const PortfolioEditPage = () => {
                     <label className="flex items-center">
                       <input type="checkbox" name="isPublic"
                         className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                        checked={form.portfolio.isPublic}
+                        checked={!!form.portfolio.isPublic}
                         onChange={handlePublicationChange} />
                       <span className="ml-2 text-sm text-gray-700">ポートフォリオを公開する</span>
                     </label>
@@ -589,7 +858,7 @@ const PortfolioEditPage = () => {
                     <label className="flex items-center">
                       <input type="checkbox" name="autoDeleteAfterOneYear"
                         className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                        checked={form.portfolio.autoDeleteAfterOneYear}
+                        checked={!!form.portfolio.autoDeleteAfterOneYear}
                         onChange={handlePublicationChange} />
                       <span className="ml-2 text-sm text-gray-700">1年後に自動削除する</span>
                     </label>

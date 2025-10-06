@@ -4,6 +4,7 @@ import { PrismaClient } from '@prisma/client'
 const prisma = new PrismaClient()
 
 export async function POST(request: NextRequest) {
+  // JSONデータを受信
   const data = await request.json()
   console.log('API受信データ:', data)
 
@@ -75,7 +76,7 @@ export async function POST(request: NextRequest) {
   )
 
   try {
-  let targetUserId = resolvedUserId
+    let targetUserId = resolvedUserId
 
     const existingUserById = await prisma.user.findUnique({
       where: { id: targetUserId },
@@ -125,18 +126,20 @@ export async function POST(request: NextRequest) {
 
     const portfolioId: string | undefined = portfolioSource.id ?? data.id ?? undefined
 
+    // SQL: UPDATE portfolios SET ... WHERE id = portfolioId
+    // SQL: INSERT INTO portfolios (...) VALUES (...)
     const portfolio = portfolioId
       ? await prisma.portfolio.upsert({
-          where: { id: portfolioId },
-          update: portfolioData,
-          create: {
-            id: portfolioId,
-            ...portfolioData,
-          },
-        })
+        where: { id: portfolioId },
+        update: portfolioData,
+        create: {
+          id: portfolioId,
+          ...portfolioData,
+        },
+      })
       : await prisma.portfolio.create({
-          data: portfolioData,
-        })
+        data: portfolioData,
+      })
 
     return NextResponse.json({ success: true, portfolio })
   } catch (error) {

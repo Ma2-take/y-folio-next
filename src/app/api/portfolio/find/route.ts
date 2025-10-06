@@ -28,13 +28,7 @@ export async function POST(request: Request) {
             include: {
                 user: {
                     include: {
-                        portfolios: {
-                            include: {
-                                skills: true,
-                                certifications: true,
-                                careers: true
-                            }
-                        }
+                        portfolios: true
                     }
                 }
             }
@@ -50,12 +44,82 @@ export async function POST(request: Request) {
         }
 
         // ユーザーデータを整形
+        const rawPortfolio = account.user.portfolios?.[0] ?? null;
+
+        const safeJsonParse = <T>(value: string | null | undefined, fallback: T): T => {
+            if (!value) return fallback;
+            try {
+                const parsed = JSON.parse(value);
+                return (parsed ?? fallback) as T;
+            } catch {
+                return fallback;
+            }
+        };
+
+        const getStringFromRecord = (record: Record<string, unknown>, key: string): string | undefined => {
+            const value = record?.[key];
+            return typeof value === "string" ? value : undefined;
+        };
+
+        const getBooleanFromRecord = (record: Record<string, unknown>, key: string): boolean | undefined => {
+            const value = record?.[key];
+            return typeof value === "boolean" ? value : undefined;
+        };
+
+        const parseStringArray = (value: string | null | undefined): string[] => {
+            const fallback: string[] = [];
+            const parsed = safeJsonParse<string[] | string>(value, fallback);
+            if (Array.isArray(parsed)) {
+                return parsed;
+            }
+            if (typeof parsed === "string") {
+                return parsed
+                    .split(",")
+                    .map((item) => item.trim())
+                    .filter(Boolean);
+            }
+            return fallback;
+        };
+
+        const experienceData = safeJsonParse<Record<string, unknown>>(rawPortfolio?.experience, {});
+        const otherData = safeJsonParse<Record<string, unknown>>(rawPortfolio?.other, {});
+        const publicationData = safeJsonParse<Record<string, unknown>>(rawPortfolio?.publication, {});
+        const visibilitySettingsData = safeJsonParse<Record<string, unknown>>(rawPortfolio?.visibilitySettings, {});
+
+        const normalizedPortfolio = rawPortfolio
+            ? {
+                id: rawPortfolio.id,
+                user_id: rawPortfolio.userId,
+                name: rawPortfolio.name,
+                university: rawPortfolio.university,
+                faculty: rawPortfolio.faculty,
+                grade: rawPortfolio.grade,
+                email: rawPortfolio.email,
+                phone: rawPortfolio.phone,
+                address: rawPortfolio.address,
+                selfIntroduction: rawPortfolio.selfIntroduction,
+                skills: parseStringArray(rawPortfolio.skillTags),
+                certifications: typeof rawPortfolio.certifications === "string"
+                    ? rawPortfolio.certifications
+                    : "",
+                internship: getStringFromRecord(experienceData, "internship"),
+                extracurricular: getStringFromRecord(experienceData, "extracurricular"),
+                awards: getStringFromRecord(experienceData, "awards"),
+                experience: getStringFromRecord(experienceData, "summary")
+                    ?? (typeof rawPortfolio.experience === "string" ? rawPortfolio.experience : undefined),
+                customQuestions: getStringFromRecord(otherData, "customQuestions"),
+                additionalInfo: getStringFromRecord(otherData, "additionalInfo"),
+                isPublic: getBooleanFromRecord(publicationData, "isPublic") ?? false,
+                autoDeleteAfterOneYear: getBooleanFromRecord(publicationData, "autoDeleteAfterOneYear") ?? false,
+                visibilitySettings: visibilitySettingsData,
+                rawProjects: rawPortfolio.projects,
+            }
+            : null;
+
         const userData = {
             ...account.user,
-            portfolio: account.user.portfolios?.[0] || null,
-            skills: account.user.portfolios?.[0]?.skills || [],
-            certifications: account.user.portfolios?.[0]?.certifications || [],
-            careers: account.user.portfolios?.[0]?.careers || []
+            uid,
+            portfolio: normalizedPortfolio,
         };
 
         console.log('Sending response:', userData); // デバッグログ
