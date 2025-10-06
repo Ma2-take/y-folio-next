@@ -1,9 +1,10 @@
 "use client";
 // import { IndustryEvaluationResult } from "@/types/Industry";
+import type { InterviewEvaluation } from "@/types/Interview";
 
 interface InterviewResultsProps {
   onRestart: () => void;
-  evaluation?: any;
+  evaluation?: InterviewEvaluation | null;
 }
 
 // フォールバック用の固定結果コンポーネント
@@ -43,6 +44,66 @@ const FallbackResults = ({ onRestart }: { onRestart: () => void }) => (
 // };
 
 export default function InterviewResults({ onRestart, evaluation }: InterviewResultsProps) {
-  // 一時的にフォールバック表示のみ
-  return <FallbackResults onRestart={onRestart} />;
+  if (!evaluation) {
+    return <FallbackResults onRestart={onRestart} />;
+  }
+
+  const score = typeof evaluation.score === "number" ? evaluation.score : undefined;
+  const summary = typeof evaluation.summary === "string" ? evaluation.summary : undefined;
+  const strengths = Array.isArray(evaluation.strengths)
+    ? evaluation.strengths.filter((item): item is string => typeof item === "string")
+    : [];
+  const improvements = Array.isArray(evaluation.improvements)
+    ? evaluation.improvements.filter((item): item is string => typeof item === "string")
+    : [];
+
+  return (
+    <div className="max-w-2xl mx-auto bg-white rounded-lg shadow p-8 mt-10">
+      <h2 className="text-2xl font-bold mb-6 text-blue-700">面接結果</h2>
+      <div className="bg-blue-50 p-6 rounded-lg shadow mb-6">
+        {score !== undefined && (
+          <div className="text-center mb-6">
+            <div className="text-4xl font-bold text-blue-600">
+              {score}
+              <span className="text-base text-gray-600 ml-1">/100</span>
+            </div>
+          </div>
+        )}
+        {summary && <p className="text-gray-700 whitespace-pre-line">{summary}</p>}
+        {!summary && <p className="text-gray-700">評価コメントはまだありません。</p>}
+      </div>
+
+      {(strengths.length > 0 || improvements.length > 0) && (
+        <div className="grid gap-6 md:grid-cols-2">
+          {strengths.length > 0 && (
+            <div className="bg-green-50 p-4 rounded-lg">
+              <h3 className="text-lg font-semibold text-green-600 mb-3">強み</h3>
+              <ul className="list-disc list-inside text-gray-800 space-y-2">
+                {strengths.map((item, index) => (
+                  <li key={`strength-${index}`}>{item}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+          {improvements.length > 0 && (
+            <div className="bg-amber-50 p-4 rounded-lg">
+              <h3 className="text-lg font-semibold text-amber-600 mb-3">改善ポイント</h3>
+              <ul className="list-disc list-inside text-gray-800 space-y-2">
+                {improvements.map((item, index) => (
+                  <li key={`improvement-${index}`}>{item}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+      )}
+
+      <button
+        className="mt-8 bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition"
+        onClick={onRestart}
+      >
+        新しい面接を開始
+      </button>
+    </div>
+  );
 } 

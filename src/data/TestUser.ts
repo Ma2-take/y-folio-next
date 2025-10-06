@@ -2,8 +2,8 @@ import { User } from "@/types/User";
 
 export const testUser: User = {
     id: '00000000-0000-0000-0000-000000000001',
-    name: 'テスト 太郎',
-    university: '東京大学',
+    name: '横浜 太郎',
+    university: '早稲田大学',
     department: '情報科学科',
     grade: '3',
     email: 'testuser@example.com',
@@ -18,7 +18,7 @@ export const testUser: User = {
     reset_token: null,
     reset_token_expires: null,
     certifications: '応用情報技術者',
-    awards: '学内ハッカソン優勝 (2023)',
+    awards: '学内ハッカソン優勝 (2023) AtCoder Grand Contest 100位 (2022)',
     created_at: new Date('2025-01-01T00:00:00Z'),
     updated_at: new Date('2025-01-01T00:00:00Z'),
 }
