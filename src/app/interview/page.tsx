@@ -4,6 +4,7 @@ import InterviewSetup from "@/components/InterviewSetup";
 import InterviewSession from "@/components/InterviewSession";
 import InterviewResults from "@/components/InterviewResults";
 import { fetchPortfolioPdfData } from "@/lib/api/portfolio";
+import { fetchUser } from "@/lib/api/user";
 import type { PortfolioPdfData } from "@/types/PortfolioPdf";
 import type { InterviewEvaluation } from "@/types/Interview";
 import { useAuth } from "@/hooks/useAuth";
@@ -23,14 +24,14 @@ export default function InterviewPage() {
   const [portfolioLoading, setPortfolioLoading] = useState(true);
   const [portfolioError, setPortfolioError] = useState("");
   const { user, loading: authLoading } = useAuth();
-  const userId = user?.uid ?? null;
+  const providerUid = user?.uid ?? null;
 
   useEffect(() => {
     let mounted = true;
     const controller = new AbortController();
 
     const loadPortfolio = async () => {
-      if (!userId) {
+      if (!providerUid) {
         setPortfolioData(null);
         setPortfolioError("ログインが必要です。");
         setPortfolioLoading(false);
@@ -41,7 +42,15 @@ export default function InterviewPage() {
         setPortfolioError("");
         setPortfolioLoading(true);
         setPortfolioData(null);
-        const data = await fetchPortfolioPdfData(userId, { signal: controller.signal });
+        const fetchedUser = await fetchUser(providerUid);
+        if (!mounted) return;
+
+        if (!fetchedUser?.id) {
+          setPortfolioError("ユーザー情報が見つかりませんでした。");
+          return;
+        }
+
+        const data = await fetchPortfolioPdfData(fetchedUser.id, { signal: controller.signal });
         if (!mounted) return;
         if (!data.user && !data.portfolio) {
           setPortfolioError("保存済みのポートフォリオが見つかりません。");
@@ -53,6 +62,7 @@ export default function InterviewPage() {
         if (error instanceof DOMException && error.name === "AbortError") {
           return;
         }
+  console.error("Failed to load portfolio for interview:", error);
         setPortfolioError("ポートフォリオの取得に失敗しました。");
       } finally {
         if (mounted) setPortfolioLoading(false);
@@ -67,7 +77,7 @@ export default function InterviewPage() {
       mounted = false;
       controller.abort();
     };
-  }, [authLoading, userId]);
+  }, [authLoading, providerUid]);
 
   const resolvedUser = useMemo(() => portfolioData?.user ?? null, [portfolioData]);
   const resolvedPortfolio = useMemo(() => portfolioData?.portfolio ?? null, [portfolioData]);
