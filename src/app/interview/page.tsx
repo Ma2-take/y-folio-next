@@ -17,9 +17,8 @@ export default function InterviewPage() {
   const [questions, setQuestions] = useState<{ id: number; question: string }[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [industry, setIndustry] = useState<string>("");
-  const [jobType, setJobType] = useState<string>("");
   const [evaluation, setEvaluation] = useState<InterviewEvaluation | null>(null);
+  const [interviewType, setInterviewType] = useState<'general' | 'technical' | 'behavioral'>('general');
   const [portfolioData, setPortfolioData] = useState<PortfolioPdfData | null>(null);
   const [portfolioLoading, setPortfolioLoading] = useState(true);
   const [portfolioError, setPortfolioError] = useState("");
@@ -82,7 +81,7 @@ export default function InterviewPage() {
   const resolvedUser = useMemo(() => portfolioData?.user ?? null, [portfolioData]);
   const resolvedPortfolio = useMemo(() => portfolioData?.portfolio ?? null, [portfolioData]);
 
-  const handleStart = async (type: string, selectedIndustry?: string, selectedJobType?: string) => {
+  const handleStart = async (type: 'general' | 'technical' | 'behavioral') => {
     if (!resolvedUser && !resolvedPortfolio) {
       setError("ポートフォリオ情報が読み込めていません。");
       return;
@@ -90,8 +89,9 @@ export default function InterviewPage() {
 
     setLoading(true);
     setError("");
-    setIndustry(selectedIndustry || "");
-    setJobType(selectedJobType || "");
+    setInterviewType(type);
+    const industry = "";
+    const jobType = "";
     
     try {
       const res = await fetch("/api/ai/job-interview", {
@@ -100,8 +100,9 @@ export default function InterviewPage() {
         body: JSON.stringify({
           user: resolvedUser,
           portfolio: resolvedPortfolio,
-          industry: selectedIndustry,
-          jobType: selectedJobType,
+          type,
+          industry,
+          jobType,
         }),
       });
       if (!res.ok) throw new Error("APIリクエストに失敗しました");
@@ -126,8 +127,9 @@ export default function InterviewPage() {
         body: JSON.stringify({
           user: resolvedUser,
           portfolio: resolvedPortfolio,
-          industry,
-          jobType,
+          type: interviewType,
+          industry: "",
+          jobType: "",
           questions,
           answers,
         }),
@@ -147,8 +149,7 @@ export default function InterviewPage() {
   const handleRestart = () => {
     setStep('setup');
     setEvaluation(null);
-    setIndustry("");
-    setJobType("");
+    setInterviewType('general');
     setQuestions([]);
   };
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { Briefcase, ArrowLeft, Save, Code, UserIcon, Projector, Cog, Plus, X, Eye, EyeOff }
+import { Briefcase, ArrowLeft, Save, Code, UserIcon, Projector, Cog, Plus, X, Eye, EyeOff, Trash2 }
   from 'lucide-react';
 import React, { useState, useRef, useEffect } from 'react';
 import { User } from '@/types/User';
@@ -66,6 +66,15 @@ const createEmptyPortfolio = (userId = ""): Portfolio => ({
   visibilitySettings: {},
   projects: [],
   rawProjects: null,
+});
+
+const createEmptyProject = (): Project => ({
+  id: typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
+    ? crypto.randomUUID()
+    : `project-${Date.now()}-${Math.random().toString(16).slice(2)}`,
+  name: "",
+  description: "",
+  url: "",
 });
 
 const defaultVisibilitySettings: VisibilitySettings = {
@@ -414,6 +423,37 @@ const PortfolioEditPage = () => {
     });
   };
 
+  const handleAddProject = () => {
+    setForm((prev) => {
+      const newProject = createEmptyProject();
+      const newProjects = [...(prev.projects ?? []), newProject];
+      return {
+        ...prev,
+        projects: newProjects,
+        portfolio: {
+          ...prev.portfolio,
+          projects: newProjects,
+        },
+        isDirty: true,
+      };
+    });
+  };
+
+  const handleRemoveProject = (idx: number) => {
+    setForm((prev) => {
+      const newProjects = prev.projects.filter((_, i) => i !== idx);
+      return {
+        ...prev,
+        projects: newProjects,
+        portfolio: {
+          ...prev.portfolio,
+          projects: newProjects,
+        },
+        isDirty: true,
+      };
+    });
+  };
+
   // 経験・活動
   const handleExperienceChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -747,13 +787,54 @@ const PortfolioEditPage = () => {
                 <div className="space-y-4">
                   {form.projects.map((project, idx) => (
                     <div key={project.id} className="border border-gray-200 rounded-lg p-4">
-                      <input type="text" placeholder="プロジェクト名" className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent mb-2" value={project.name} onChange={e => handleProjectChange(idx, 'name', e.target.value)} />
-                      <textarea placeholder="プロジェクトの説明、使用技術、成果など" rows={3} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent mb-2" value={project.description} onChange={e => handleProjectChange(idx, 'description', e.target.value)}></textarea>
-                      <input type="url" placeholder="プロジェクトURL（任意）" className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent" value={project.url || ''} onChange={e => handleProjectChange(idx, 'url', e.target.value)} />
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="flex-1 mr-2">
+                          <label className="block text-sm font-medium text-gray-700 mb-2">プロジェクト名</label>
+                          <input
+                            type="text"
+                            placeholder="プロジェクト名"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                            value={project.name}
+                            onChange={(e) => handleProjectChange(idx, 'name', e.target.value)}
+                          />
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveProject(idx)}
+                          className="text-gray-400 hover:text-red-500 transition"
+                          aria-label="プロジェクトを削除"
+                        >
+                          <Trash2 className="w-5 h-5" />
+                        </button>
+                      </div>
+                      <div className="mb-3">
+                        <label className="block text-sm font-medium text-gray-700 mb-2">プロジェクトの説明</label>
+                        <textarea
+                          placeholder="プロジェクトの説明、使用技術、成果など"
+                          rows={3}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                          value={project.description}
+                          onChange={(e) => handleProjectChange(idx, 'description', e.target.value)}
+                        ></textarea>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">プロジェクトURL（任意）</label>
+                        <input
+                          type="url"
+                          placeholder="https://example.com"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                          value={project.url || ''}
+                          onChange={(e) => handleProjectChange(idx, 'url', e.target.value)}
+                        />
+                      </div>
                     </div>
                   ))}
-                  <button type="button" className="w-full py-2 border-2 border-dashed border-gray-300 rounded-lg text-gray-500 mt-2 cursor-not-allowed flex items-center justify-center" disabled>
-                    <Plus className="w-5 h-5 mr-2" />プロジェクトを追加（未実装）
+                  <button
+                    type="button"
+                    className="w-full py-2 border-2 border-dashed border-indigo-400 rounded-lg text-indigo-600 mt-2 flex items-center justify-center hover:bg-indigo-50 transition"
+                    onClick={handleAddProject}
+                  >
+                    <Plus className="w-5 h-5 mr-2" />プロジェクトを追加
                   </button>
                 </div>
               </div>
