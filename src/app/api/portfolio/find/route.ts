@@ -119,6 +119,7 @@ export async function POST(request: Request) {
         const userData = {
             ...account.user,
             uid,
+            selfIntroduction: normalizedPortfolio?.selfIntroduction ?? null,
             portfolio: normalizedPortfolio,
         };
 

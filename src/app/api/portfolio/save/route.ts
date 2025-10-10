@@ -68,8 +68,60 @@ export async function POST(request: NextRequest) {
   const ensureObject = (value: unknown) =>
     value && typeof value === 'object' && !Array.isArray(value) ? value as Record<string, unknown> : {}
 
-  const experience = ensureObject(portfolioSource.experience ?? data.experience)
-  const other = ensureObject(portfolioSource.other ?? data.other)
+  const experienceInput = portfolioSource.experience ?? data.experience
+  const experienceObject = ensureObject(experienceInput)
+  const summaryString = toNullableString(
+    typeof experienceInput === 'string' ? experienceInput : experienceObject.summary
+  )
+  if (summaryString !== null) {
+    experienceObject.summary = summaryString
+  } else if ('summary' in experienceObject) {
+    delete experienceObject.summary
+  }
+  const internshipString = toNullableString(
+    portfolioSource.internship ?? data.internship ?? experienceObject.internship ?? undefined
+  )
+  if (internshipString !== null) {
+    experienceObject.internship = internshipString
+  } else if ('internship' in experienceObject) {
+    delete experienceObject.internship
+  }
+  const extracurricularString = toNullableString(
+    portfolioSource.extracurricular ?? data.extracurricular ?? experienceObject.extracurricular ?? undefined
+  )
+  if (extracurricularString !== null) {
+    experienceObject.extracurricular = extracurricularString
+  } else if ('extracurricular' in experienceObject) {
+    delete experienceObject.extracurricular
+  }
+  const awardsString = toNullableString(
+    portfolioSource.awards ?? data.awards ?? experienceObject.awards ?? undefined
+  )
+  if (awardsString !== null) {
+    experienceObject.awards = awardsString
+  } else if ('awards' in experienceObject) {
+    delete experienceObject.awards
+  }
+
+  const otherInput = portfolioSource.other ?? data.other
+  const otherObject = ensureObject(otherInput)
+  const customQuestionsString = toNullableString(
+    portfolioSource.customQuestions ?? data.customQuestions ?? otherObject.customQuestions ?? undefined
+  )
+  if (customQuestionsString !== null) {
+    otherObject.customQuestions = customQuestionsString
+  } else if ('customQuestions' in otherObject) {
+    delete otherObject.customQuestions
+  }
+  const additionalInfoString = toNullableString(
+    portfolioSource.additionalInfo ?? data.additionalInfo ?? otherObject.additionalInfo ?? undefined
+  )
+  if (additionalInfoString !== null) {
+    otherObject.additionalInfo = additionalInfoString
+  } else if ('additionalInfo' in otherObject) {
+    delete otherObject.additionalInfo
+  }
+
   const publication = ensureObject(portfolioSource.publication ?? data.publication)
   const visibilitySettings = ensureObject(
     portfolioSource.visibilitySettings ?? data.visibilitySettings
@@ -118,8 +170,8 @@ export async function POST(request: NextRequest) {
       skillTags: JSON.stringify(skillTags),
       certifications: toStringOrEmpty(portfolioSource.certifications),
       projects: JSON.stringify(projects),
-      experience: JSON.stringify(experience),
-      other: JSON.stringify(other),
+  experience: JSON.stringify(experienceObject),
+  other: JSON.stringify(otherObject),
       publication: JSON.stringify(publication),
       visibilitySettings: JSON.stringify(visibilitySettings),
     }

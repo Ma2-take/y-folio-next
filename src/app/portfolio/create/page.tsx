@@ -195,6 +195,48 @@ const PortfolioCreatePage = () => {
   const handleSave = async () => {
     if (!user) return;
 
+    const sanitizeProject = (project: Project): Project | null => {
+      const name = project.name.trim();
+      const description = project.description.trim();
+      const url = project.url.trim();
+      const hasContent = name.length > 0 || description.length > 0 || url.length > 0;
+      if (!hasContent) {
+        return null;
+      }
+      return {
+        name,
+        description,
+        url,
+      };
+    };
+
+    const sanitizedProjects = (() => {
+      const committedProjects = form.projects
+        .map(sanitizeProject)
+        .filter((project): project is Project => project !== null);
+
+      const pendingProject = sanitizeProject(form.projectInput);
+      if (pendingProject) {
+        committedProjects.push(pendingProject);
+      }
+      return committedProjects;
+    })();
+
+    const sanitizedExperience = {
+      internship: form.experience.internship.trim(),
+      extracurricular: form.experience.extracurricular.trim(),
+      awards: form.experience.awards.trim(),
+    };
+
+    const sanitizedOther = {
+      customQuestions: form.other.customQuestions.trim(),
+      additionalInfo: form.other.additionalInfo.trim(),
+    };
+
+    const sanitizedSkillTags = form.skillTags
+      .map((tag) => tag.trim())
+      .filter((tag) => tag.length > 0);
+
     try {
       const resolvedUserId = user.uid;
 
@@ -203,33 +245,33 @@ const PortfolioCreatePage = () => {
         user: {
           id: resolvedUserId,
           uid: resolvedUserId,
-          name: form.name,
-          email: form.email,
-          phone: form.phone,
-          address: form.address,
-          university: form.university,
-          department: form.faculty,
-          grade: form.grade,
-          selfIntroduction: form.selfIntroduction,
+          name: form.name.trim(),
+          email: form.email.trim(),
+          phone: form.phone.trim(),
+          address: form.address.trim(),
+          university: form.university.trim(),
+          department: form.faculty.trim(),
+          grade: form.grade.trim(),
+          selfIntroduction: form.selfIntroduction.trim(),
         },
         portfolio: {
-          name: form.name,
-          university: form.university,
-          faculty: form.faculty,
-          grade: form.grade,
-          email: form.email,
-          phone: form.phone,
-          address: form.address,
-          selfIntroduction: form.selfIntroduction,
-          skillTags: form.skillTags,
-          certifications: form.certifications,
-          projects: form.projects,
-          experience: form.experience,
-          other: form.other,
+          name: form.name.trim(),
+          university: form.university.trim(),
+          faculty: form.faculty.trim(),
+          grade: form.grade.trim(),
+          email: form.email.trim(),
+          phone: form.phone.trim(),
+          address: form.address.trim(),
+          selfIntroduction: form.selfIntroduction.trim(),
+          skillTags: sanitizedSkillTags,
+          certifications: form.certifications.trim(),
+          projects: sanitizedProjects,
+          experience: sanitizedExperience,
+          other: sanitizedOther,
           publication: form.publication,
           visibilitySettings: form.visibilitySettings,
         },
-        projects: form.projects,
+        projects: sanitizedProjects,
         visibilitySettings: form.visibilitySettings,
       };
 
