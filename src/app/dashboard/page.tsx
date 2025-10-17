@@ -160,7 +160,6 @@ const DashboardPage = () => {
           userId={dbUser.id}
           close={closePdfPreview}
           onPrint={() => window.print()}
-          onDownload={() => alert('ダウンロード機能は未実装です')}
         />
       )}
     </div>
