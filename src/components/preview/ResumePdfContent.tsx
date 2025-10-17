@@ -30,7 +30,7 @@ export default function ResumePdfContent({ data }: Props) {
     const createdAt = new Date().toLocaleDateString('ja-JP');
 
     return (
-        <div className="bg-white border border-gray-400 rounded-lg p-8 max-w-3xl mx-auto shadow-inner text-gray-900 text-sm">
+        <div className="w-full bg-white border border-gray-400 rounded-lg p-8 shadow-inner text-gray-900 text-sm">
             {/* Header */}
             <div className="flex justify-between items-center mb-6">
                 <div>
@@ -74,16 +74,16 @@ export default function ResumePdfContent({ data }: Props) {
             {university && (
                 <div className="mb-6">
                     <span className="font-semibold">学歴・職歴</span>:
-                    <table className="w-full border mt-2">
+                    <table className="w-full border border-collapse mt-2">
                         <tbody>
                             <tr>
-                                <td className="border px-2 py-1 w-1/3">学歴</td>
-                                <td className="border px-2 py-1">{university}</td>
+                                <td className="border px-2 py-1 w-1/3 align-top">学歴</td>
+                                <td className="border px-2 py-1 align-top">{university}</td>
                             </tr>
                             {grade && (
                                 <tr>
-                                    <td className="border px-2 py-1">在籍状況</td>
-                                    <td className="border px-2 py-1">{grade}</td>
+                                    <td className="border px-2 py-1 align-top">在籍状況</td>
+                                    <td className="border px-2 py-1 align-top">{grade}</td>
                                 </tr>
                             )}
                         </tbody>
@@ -95,7 +95,7 @@ export default function ResumePdfContent({ data }: Props) {
             <div className="mb-6">
                 <span className="font-semibold">資格・免許</span>:
                 {certifications.length > 0 ? (
-                    <ul className="list-disc ml-6 mt-2">
+                    <ul className="list-disc ml-6 mt-2 space-y-1 leading-relaxed">
                         {certifications.map((cert) => (
                             <li key={cert}>{cert}</li>
                         ))}

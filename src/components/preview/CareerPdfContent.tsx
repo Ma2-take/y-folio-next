@@ -28,7 +28,7 @@ export default function CareerPdfContent({ data }: Props) {
     const certifications = portfolio?.certifications ?? [];
 
     return (
-        <div className="max-w-4xl mx-auto">
+        <div className="w-full">
             <h1 className="text-2xl font-bold text-center mb-8">職務経歴書</h1>
 
             {/* 基本情報 */}

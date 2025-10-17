@@ -12,6 +12,13 @@ import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import { converter, parse } from 'culori';
 
+const MM_PER_INCH = 25.4;
+const SCREEN_DPI = 96;
+const A4_WIDTH_MM = 210;
+const A4_HEIGHT_MM = 297;
+const A4_WIDTH_PX = Math.round((A4_WIDTH_MM / MM_PER_INCH) * SCREEN_DPI); // ≈ 794px
+const A4_HEIGHT_PX = Math.round((A4_HEIGHT_MM / MM_PER_INCH) * SCREEN_DPI); // ≈ 1123px
+
 const rgbConverter = converter('rgb');
 
 const clampChannel = (value: number): number => {
@@ -79,7 +86,13 @@ const applyColorFallbacks = (source: Element, target: Element): void => {
     }
 };
 
-const createNormalizedClone = (source: HTMLElement | null) => {
+const createNormalizedClone = (
+    source: HTMLElement | null,
+    options: {
+        width?: number;
+        minHeight?: number;
+    } = {}
+) => {
     if (!source) {
         return null;
     }
@@ -135,8 +148,8 @@ const createNormalizedClone = (source: HTMLElement | null) => {
 
     const clone = source.cloneNode(true) as HTMLElement;
     const rect = source.getBoundingClientRect();
-    const width = rect.width || source.offsetWidth || source.scrollWidth;
-    const height = rect.height || source.offsetHeight || source.scrollHeight;
+    const width = options.width ?? (rect.width || source.offsetWidth || source.scrollWidth);
+    const height = options.minHeight ?? (rect.height || source.offsetHeight || source.scrollHeight);
 
     clone.style.width = `${width}px`;
     clone.style.minHeight = `${height}px`;
@@ -194,7 +207,10 @@ export default function PdfPreviewModal({
     const handleDownload = async () => {
         if (isLoading || isDownloading) return;
 
-        const cloneResult = createNormalizedClone(previewRef.current);
+        const cloneResult = createNormalizedClone(previewRef.current, {
+            width: A4_WIDTH_PX,
+            minHeight: A4_HEIGHT_PX,
+        });
 
         if (!cloneResult) {
             alert('ダウンロード対象のプレビューを取得できませんでした');
@@ -211,13 +227,13 @@ export default function PdfPreviewModal({
 
             const captureElement = cloneResult.clone;
             const captureWidth = Math.max(
-                1,
+                A4_WIDTH_PX,
                 captureElement.scrollWidth,
                 captureElement.offsetWidth,
                 captureElement.clientWidth
             );
             const captureHeight = Math.max(
-                1,
+                A4_HEIGHT_PX,
                 captureElement.scrollHeight,
                 captureElement.offsetHeight,
                 captureElement.clientHeight
@@ -234,50 +250,24 @@ export default function PdfPreviewModal({
                 windowHeight: captureHeight,
             });
 
+            const imgData = canvas.toDataURL('image/png');
             const pdf = new jsPDF('p', 'mm', 'a4');
             const pageWidth = pdf.internal.pageSize.getWidth();
             const pageHeight = pdf.internal.pageSize.getHeight();
-            const canvasWidth = canvas.width;
-            const canvasHeight = canvas.height;
-            const pageHeightPx = Math.floor((canvasWidth * pageHeight) / pageWidth);
+            const imgWidth = pageWidth;
+            const imgHeight = (canvas.height * pageWidth) / canvas.width;
 
-            let renderedHeight = 0;
-            let pageIndex = 0;
+            let remainingHeight = imgHeight;
+            let position = 0;
 
-            while (renderedHeight < canvasHeight) {
-                const sliceHeight = Math.min(pageHeightPx, canvasHeight - renderedHeight);
-                const sliceCanvas = document.createElement('canvas');
-                sliceCanvas.width = canvasWidth;
-                sliceCanvas.height = sliceHeight;
+            pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+            remainingHeight -= pageHeight;
 
-                const ctx = sliceCanvas.getContext('2d');
-                if (!ctx) {
-                    throw new Error('Canvas 2D context is not available');
-                }
-
-                ctx.drawImage(
-                    canvas,
-                    0,
-                    renderedHeight,
-                    canvasWidth,
-                    sliceHeight,
-                    0,
-                    0,
-                    canvasWidth,
-                    sliceHeight
-                );
-
-                const sliceImgData = sliceCanvas.toDataURL('image/png');
-                const sliceHeightMm = (sliceHeight * pageWidth) / canvasWidth;
-
-                if (pageIndex > 0) {
-                    pdf.addPage();
-                }
-
-                pdf.addImage(sliceImgData, 'PNG', 0, 0, pageWidth, sliceHeightMm);
-
-                renderedHeight += sliceHeight;
-                pageIndex += 1;
+            while (remainingHeight > 0) {
+                position -= pageHeight;
+                pdf.addPage();
+                pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+                remainingHeight -= pageHeight;
             }
 
             pdf.save('portfolio.pdf');
@@ -385,7 +375,17 @@ export default function PdfPreviewModal({
                     ) : !portfolioData || !hasPortfolio ? (
                         <div className="text-gray-500 p-4 text-center">ポートフォリオ情報が見つかりませんでした。</div>
                     ) : (
-                        <div ref={previewRef} id="pdf-preview">
+                        <div
+                            ref={previewRef}
+                            id="pdf-preview"
+                            className="mx-auto bg-white text-gray-900 shadow-sm"
+                            style={{
+                                width: `${A4_WIDTH_PX}px`,
+                                minHeight: `${A4_HEIGHT_PX}px`,
+                                padding: '48px',
+                                boxSizing: 'border-box',
+                            }}
+                        >
                             {pdfFormat === 'standard' && <StandardPdfContent data={portfolioData} />}
                             {pdfFormat === 'table' && <TablePdfContent data={portfolioData} />}
                             {pdfFormat === 'resume' && <ResumePdfContent data={portfolioData} />}
