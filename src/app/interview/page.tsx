@@ -81,7 +81,8 @@ export default function InterviewPage() {
   const resolvedUser = useMemo(() => portfolioData?.user ?? null, [portfolioData]);
   const resolvedPortfolio = useMemo(() => portfolioData?.portfolio ?? null, [portfolioData]);
 
-  const handleStart = async (type: 'general' | 'technical' | 'behavioral') => {
+  const handleStart = async () => {
+    const type = 'general' as const;
     if (!resolvedUser && !resolvedPortfolio) {
       setError("ポートフォリオ情報が読み込めていません。");
       return;
@@ -160,7 +161,7 @@ export default function InterviewPage() {
         <div className="text-red-500">{portfolioError || error}</div>
       )}
       {!authLoading && !portfolioLoading && !portfolioError && !loading && !error && step === 'setup' && (
-        <InterviewSetup onStart={handleStart} />
+    <InterviewSetup onStart={handleStart} />
       )}
       {!authLoading && !portfolioLoading && !portfolioError && !loading && !error && step === 'session' && (
         <InterviewSession onFinish={handleFinish} questions={questions} />
