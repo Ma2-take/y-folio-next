@@ -14,7 +14,7 @@ export const genAI = new GoogleGenAI({ apiKey });
 // Google Gemini API(@google/genai)を使った面接質問生成
 export async function generateInterviewQuestionsWithGemini({ user, portfolio }: { user: User; portfolio: Portfolio }) {
   const prompt = `
-あなたは面接官です。以下の応募者情報をもとに、面接で使う質問を5つ日本語で作成してください。
+あなたは面接官です。以下の応募者情報をもとに、総合面接で使う質問を5つ日本語で作成してください。
 
 【応募者情報】
 氏名: ${user.name}
@@ -27,16 +27,13 @@ export async function generateInterviewQuestionsWithGemini({ user, portfolio }: 
 受賞歴: ${portfolio.awards || ""}
 経験: ${portfolio.experience || ""}
 
-【出力形式】
-- 質問は対話形式、120文字以内で出力してください。
-- 学科に関する質問は、その学部で何を学んできたか簡単に質問してください。
-- スキルに関する質問は、1つを深く掘り下げて質問してください。
-- 経験については、その経験を通して何を学んだか簡単に質問してください。
-
-【面接タイプ別のプロンプト】
-- 総合面接の場合、人物像（どんな人か）、志望動機、学生時代に力を入れたことや経験についても質問に含めてください。
-- 技術面接の場合、技術的な質問を中心に、その技術をどのように活用したかや、その技術を学んだ経緯などを質問に含めてください。
-- 行動面接の場合、チームメンバーとどう関わってきたか、役割分担、リーダーシップ経験などを深堀りして質問してください。
+【質問作成ルール】
+1. 質問は対話形式で120文字以内にしてください。
+2. 志望動機、人物像（価値観・強み）、学生時代に力を入れた経験をバランス良く取り上げてください。
+3. 学科に関する質問では、その学部で何を学んだかを簡潔に確認してください。
+4. スキルについては1つを選び、深掘りする質問にしてください。
+5. 経験については、その経験を通して何を学んだかを尋ねてください。
+6. 応募者の回答を引き出すために、自然な会話調で質問を始めてください。
 `;
 
   const contents = [
@@ -131,17 +128,15 @@ export async function generateIndustrySpecificQuestions({
 }
 
 // 業界特化面接回答評価（一時的に無効化）
-export async function evaluateIndustrySpecificAnswers({
-  questions,
-  answers,
-  industry,
-  jobType
-}: {
-  questions: { id: number; question: string }[];
-  answers: string[];
-  industry: string;
-  jobType: string;
-}) {
+export async function evaluateIndustrySpecificAnswers(
+  _params: {
+    questions: { id: number; question: string }[];
+    answers: string[];
+    industry: string;
+    jobType: string;
+  }
+) {
+  void _params;
   // 一時的に無効化
   throw new Error('評価機能は現在開発中です');
 } 
