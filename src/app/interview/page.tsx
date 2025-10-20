@@ -83,16 +83,14 @@ export default function InterviewPage() {
 
   const handleStart = async () => {
     const type = 'general' as const;
-    if (!resolvedUser && !resolvedPortfolio) {
-      setError("ポートフォリオ情報が読み込めていません。");
+    if (!resolvedUser || !resolvedPortfolio) {
+      setError("面接を開始するにはユーザー情報とポートフォリオが必要です。");
       return;
     }
 
     setLoading(true);
     setError("");
     setInterviewType(type);
-    const industry = "";
-    const jobType = "";
     
     try {
       const res = await fetch("/api/ai/job-interview", {
@@ -102,8 +100,6 @@ export default function InterviewPage() {
           user: resolvedUser,
           portfolio: resolvedPortfolio,
           type,
-          industry,
-          jobType,
         }),
       });
       if (!res.ok) throw new Error("APIリクエストに失敗しました");
@@ -119,6 +115,11 @@ export default function InterviewPage() {
   };
 
   const handleFinish = async (answers: { questionId: number; answer: string }[]) => {
+    if (!resolvedUser || !resolvedPortfolio) {
+      setError("評価を実行できるユーザー情報とポートフォリオが見つかりません。");
+      return;
+    }
+
     setLoading(true);
     setError("");
     try {
@@ -129,8 +130,6 @@ export default function InterviewPage() {
           user: resolvedUser,
           portfolio: resolvedPortfolio,
           type: interviewType,
-          industry: "",
-          jobType: "",
           questions,
           answers,
         }),
