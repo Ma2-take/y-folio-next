@@ -8,8 +8,6 @@ export interface Portfolio {
     faculty?: string | null;
     grade?: string | null;
     email?: string | null;
-    phone?: string | null;
-    address?: string | null;
     selfIntroduction?: string | null;
     skills?: string[] | null;
     skillTags?: string[] | string | null;

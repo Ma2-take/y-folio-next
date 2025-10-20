@@ -90,13 +90,10 @@ export async function POST(request: Request) {
             ? {
                 id: rawPortfolio.id,
                 user_id: rawPortfolio.userId,
-                name: rawPortfolio.name,
                 university: rawPortfolio.university,
                 faculty: rawPortfolio.faculty,
                 grade: rawPortfolio.grade,
-                email: rawPortfolio.email,
-                phone: rawPortfolio.phone,
-                address: rawPortfolio.address,
+                email: rawPortfolio.email || account.user.email,
                 selfIntroduction: rawPortfolio.selfIntroduction,
                 skills: parseStringArray(rawPortfolio.skillTags),
                 certifications: typeof rawPortfolio.certifications === "string"

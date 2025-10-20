@@ -3,6 +3,9 @@ CREATE TABLE `User` (
     `id` VARCHAR(191) NOT NULL,
     `name` VARCHAR(191) NULL,
     `email` VARCHAR(191) NULL,
+    `phone` VARCHAR(191) NOT NULL,
+    `address` VARCHAR(191) NOT NULL,
+    `birthday` DATETIME(3) NULL,
 
     UNIQUE INDEX `User_email_key`(`email`),
     PRIMARY KEY (`id`)
@@ -23,13 +26,10 @@ CREATE TABLE `Account` (
 CREATE TABLE `Portfolio` (
     `id` VARCHAR(191) NOT NULL,
     `userId` VARCHAR(191) NOT NULL,
-    `name` VARCHAR(191) NOT NULL,
     `university` VARCHAR(191) NOT NULL,
     `faculty` VARCHAR(191) NOT NULL,
     `grade` VARCHAR(191) NOT NULL,
     `email` VARCHAR(191) NOT NULL,
-    `phone` VARCHAR(191) NOT NULL,
-    `address` VARCHAR(191) NOT NULL,
     `selfIntroduction` VARCHAR(191) NOT NULL,
     `skillTags` VARCHAR(191) NOT NULL,
     `certifications` VARCHAR(191) NOT NULL,

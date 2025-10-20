@@ -6,7 +6,7 @@ const prisma = new PrismaClient()
 export async function POST(request: NextRequest) {
   // JSONデータを受信
   const data = await request.json()
-  console.log('API受信データ:', data)
+  // console.log('API受信データ:', data)
 
   const resolvedUserId = data.user_id ?? data.userId ?? data.user?.id ?? data.user?.uid
 
@@ -34,15 +34,14 @@ export async function POST(request: NextRequest) {
   const userPhone = toNullableString(data.user?.phone ?? data.phone)
   const userAddress = toNullableString(data.user?.address ?? data.address)
 
+  console.log("portfolio: ", data.portfolio)
+
   const portfolioSource = data.portfolio ?? {
     id: data.id,
-    name: data.name,
     university: data.university,
     faculty: data.faculty ?? data.department,
     grade: data.grade,
     email: data.email,
-    phone: data.phone,
-    address: data.address,
     selfIntroduction: data.selfIntroduction,
     skillTags: data.skillTags,
     certifications: data.certifications,
@@ -149,23 +148,24 @@ export async function POST(request: NextRequest) {
       update: {
         email: userEmail ?? undefined,
         name: userName ?? undefined,
+        phone: userPhone ?? undefined,
+        address: userAddress ?? undefined,
       },
       create: {
         id: targetUserId,
         email: userEmail,
         name: userName,
+        phone: "",
+        address: "",
       },
     })
 
     const portfolioData = {
       userId: userRecord.id,
-      name: portfolioSource.name ?? userName ?? '',
       university: portfolioSource.university ?? '',
       faculty: portfolioSource.faculty ?? '',
       grade: portfolioSource.grade ?? '',
       email: toStringOrEmpty(portfolioSource.email ?? userEmail),
-      phone: toStringOrEmpty(portfolioSource.phone ?? userPhone),
-      address: toStringOrEmpty(portfolioSource.address ?? userAddress),
       selfIntroduction: toStringOrEmpty(portfolioSource.selfIntroduction),
       skillTags: JSON.stringify(skillTags),
       certifications: toStringOrEmpty(portfolioSource.certifications),
@@ -178,6 +178,7 @@ export async function POST(request: NextRequest) {
 
     const portfolioId: string | undefined = portfolioSource.id ?? data.id ?? undefined
 
+    console.log(data.portfolio)
     // SQL: UPDATE portfolios SET ... WHERE id = portfolioId
     // SQL: INSERT INTO portfolios (...) VALUES (...)
     const portfolio = portfolioId

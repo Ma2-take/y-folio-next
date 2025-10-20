@@ -11,6 +11,9 @@ model User {
   id        String   @id @default(cuid())  // 内部的に使うユーザーID
   name      String?
   email     String?  @unique
+  phone     String
+  address    String
+  birthday  DateTime?
   accounts  Account[]  // 複数のSNSログインを紐づけられる
   portfolios Portfolio[]
 }
@@ -20,8 +23,6 @@ model Account {
   provider      String   // "google", "github", "twitter" など
   providerUserId String   // Googleならsub, GitHubならid など
   userId        String
-  address       String
-  phone         String
 
   user          User     @relation(fields: [userId], references: [id])
 
@@ -31,13 +32,10 @@ model Account {
 model Portfolio {
   id          String   @id @default(uuid())
   userId      String
-  name        String
   university  String
   faculty     String
   grade       String
   email       String
-  phone       String
-  address     String
   selfIntroduction String
   skillTags   String   // JSON文字列で保存
   certifications String

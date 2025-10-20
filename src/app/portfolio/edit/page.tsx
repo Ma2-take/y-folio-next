@@ -49,8 +49,6 @@ const createEmptyPortfolio = (userId = ""): Portfolio => ({
   faculty: "",
   grade: "",
   email: "",
-  phone: "",
-  address: "",
   selfIntroduction: "",
   skills: [],
   skillTags: [],
@@ -65,7 +63,6 @@ const createEmptyPortfolio = (userId = ""): Portfolio => ({
   autoDeleteAfterOneYear: false,
   visibilitySettings: {},
   projects: [],
-  rawProjects: null,
 });
 
 const createEmptyProject = (): Project => ({
@@ -184,7 +181,7 @@ const mapPortfolioResponse = (portfolio: Portfolio | null | undefined, userId: s
   if (!portfolio) return base;
 
   const skills = ensureStringArray(portfolio.skills ?? portfolio.skillTags);
-  const projects = parseProjectsFromSource((portfolio.projects as unknown) ?? portfolio.rawProjects);
+  const projects = parseProjectsFromSource(portfolio.projects as unknown);
   return {
     ...base,
     ...portfolio,
@@ -195,8 +192,6 @@ const mapPortfolioResponse = (portfolio: Portfolio | null | undefined, userId: s
     faculty: ensureString(portfolio.faculty, base.faculty),
     grade: ensureString(portfolio.grade, base.grade),
     email: ensureString(portfolio.email, base.email),
-    phone: ensureString(portfolio.phone, base.phone),
-    address: ensureString(portfolio.address, base.address),
     selfIntroduction: ensureString(portfolio.selfIntroduction, base.selfIntroduction),
     skills,
     skillTags: skills,
@@ -211,7 +206,6 @@ const mapPortfolioResponse = (portfolio: Portfolio | null | undefined, userId: s
     autoDeleteAfterOneYear: ensureBoolean(portfolio.autoDeleteAfterOneYear, !!base.autoDeleteAfterOneYear),
     visibilitySettings: portfolio.visibilitySettings ?? base.visibilitySettings,
     projects,
-    rawProjects: typeof portfolio.rawProjects === "string" ? portfolio.rawProjects : base.rawProjects,
   };
 };
 
@@ -279,7 +273,7 @@ const PortfolioEditPage = () => {
       .then((apiResponse) => {
         if (!isMounted) return;
 
-  const response = apiResponse as UserWithPortfolio;
+        const response = apiResponse as UserWithPortfolio;
         const mappedUser = mapUserResponse(response, providerUid);
         const resolvedUserId = mappedUser.id || providerUid;
         const mappedPortfolio = mapPortfolioResponse(response.portfolio, resolvedUserId);
@@ -335,6 +329,19 @@ const PortfolioEditPage = () => {
       ...prev,
       user: {
         ...prev.user,
+        [name]: value,
+      },
+      isDirty: true,
+    }));
+  };
+
+  const handlePortfolioChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    console.log("Portfolio Change:", name, value);
+    setForm((prev) => ({
+      ...prev,
+      portfolio: {
+        ...prev.portfolio,
         [name]: value,
       },
       isDirty: true,
@@ -483,6 +490,7 @@ const PortfolioEditPage = () => {
   // 公開設定
   const handlePublicationChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, checked } = e.target;
+    console.log(name, checked)
     setForm((prev) => ({
       ...prev,
       portfolio: {
@@ -542,6 +550,8 @@ const PortfolioEditPage = () => {
         portfolio: {
           ...form.portfolio,
           user_id: resolvedUserId,
+          university: form.portfolio.university,
+          grade: form.portfolio.grade,
           skillTags: form.portfolio.skills ?? [],
           projects: form.projects,
           visibilitySettings,
@@ -648,19 +658,19 @@ const PortfolioEditPage = () => {
                     <input type="text" name="university"
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                       placeholder="東京大学"
-                      value={form.user.university || ''} onChange={handleBasicInfoChange} />
+                      value={form.portfolio.university || ''} onChange={handlePortfolioChange} />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">学部</label>
-                    <input type="text" name="department"
+                    <input type="text" name="faculty"
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                       placeholder="工学部"
-                      value={form.user.department || ''} onChange={handleBasicInfoChange} />
+                      value={form.portfolio.faculty || ''} onChange={handlePortfolioChange} />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">学年</label>
                     <select name="grade" className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                      value={form.user.grade || ''} onChange={handleBasicInfoChange}>
+                      value={form.portfolio.grade || ''} onChange={handlePortfolioChange}>
                       <option value="">選択してください</option>
                       <option value="1">1年生</option>
                       <option value="2">2年生</option>
@@ -681,16 +691,15 @@ const PortfolioEditPage = () => {
                 </div>
                 <div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">メールアドレス</label>
+                    <label className="block text-sm font-medium text-gray-700 my-2">メールアドレス（ポートフォリオ用）</label>
                     <input type="email" name="email"
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                       placeholder="yamada@example.com"
-                      value={form.user.email}
-                      onChange={handleBasicInfoChange} />
+                      value={form.portfolio.email || ''} onChange={handlePortfolioChange} />
                   </div>
                   <div className="flex items-center gap-2">
                     <div className="flex-1">
-                      <label className="block text-sm font-medium text-gray-700 mb-2">所在地</label>
+                      <label className="block text-sm font-medium text-gray-700 my-2">所在地</label>
                       <input type="text" name="address"
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                         placeholder="東京都新宿区"
@@ -704,7 +713,7 @@ const PortfolioEditPage = () => {
                   </div>
                   <div className="flex items-center gap-2">
                     <div className="flex-1">
-                      <label className="block text-sm font-medium text-gray-700 mb-2">電話番号</label>
+                      <label className="block text-sm font-medium text-gray-700 my-2">電話番号</label>
                       <input type="tel" name="phone"
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                         placeholder="090-1234-5678"
@@ -723,8 +732,8 @@ const PortfolioEditPage = () => {
                   <textarea name="selfIntroduction"
                     rows={4}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent" placeholder="あなたの強みや興味のある分野について教えてください"
-                    value={form.user.selfIntroduction || ''}
-                    onChange={handleBasicInfoChange}></textarea>
+                    value={form.portfolio.selfIntroduction || ''}
+                    onChange={handlePortfolioChange}></textarea>
                 </div>
               </div>
 

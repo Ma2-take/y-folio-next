@@ -97,6 +97,11 @@ npx prisma migrate dev --name init
 npx prisma generate
 ```
 
+### マイグレーション
+```bash
+npx prisma migrate dev --name マイグレーション名
+```
+
 ## DB再構築
 ```bash
 npx prisma migrate reset
