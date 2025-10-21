@@ -11,6 +11,7 @@ export async function POST(req: NextRequest) {
       answers,
       industry,
       jobType,
+      companyContext,
     } = await req.json();
 
     const normalizedQuestions = Array.isArray(questions)
@@ -77,6 +78,7 @@ export async function POST(req: NextRequest) {
           portfolio: portfolio ?? null,
           questions: normalizedQuestions,
           answers: orderedAnswers,
+          companyContext: companyContext ?? null,
         })
       : await evaluateIndustrySpecificAnswers({
           user: user ?? null,
@@ -85,6 +87,7 @@ export async function POST(req: NextRequest) {
           answers: orderedAnswers,
           industry,
           jobType,
+          companyContext: companyContext ?? null,
         });
 
     return NextResponse.json({ evaluation });

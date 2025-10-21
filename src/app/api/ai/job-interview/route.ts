@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { generateInterviewQuestionsWithGemini, generateIndustrySpecificQuestions } from "@/lib/gemini";
 
 export async function POST(req: NextRequest) {
-    const { user, portfolio, industry, jobType } = await req.json();
+    const { user, portfolio, industry, jobType, companyContext } = await req.json();
     
     if (!user || !portfolio) {
         return NextResponse.json({ error: "userとportfolioが必要です" }, { status: 400 });
@@ -17,11 +17,12 @@ export async function POST(req: NextRequest) {
                 user,
                 portfolio,
                 industry,
-                jobType
+                jobType,
+                companyContext,
             });
         } else {
             // 通常面接
-            questions = await generateInterviewQuestionsWithGemini({ user, portfolio });
+            questions = await generateInterviewQuestionsWithGemini({ user, portfolio, companyContext });
         }
         
         return NextResponse.json({ questions });

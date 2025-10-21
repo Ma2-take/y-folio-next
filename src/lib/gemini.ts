@@ -1,6 +1,6 @@
 import { User } from "@/types/User";
 import { Portfolio } from "@/types/Portforio";
-import type { InterviewEvaluation } from "@/types/Interview";
+import type { InterviewCompanyContext, InterviewEvaluation } from "@/types/Interview";
 import { GoogleGenAI } from "@google/genai";
 // import { getIndustryProfile, getJobTypeProfile } from "@/data/IndustryData";
 import { simpleIndustries, simpleJobTypes } from "@/data/SimpleIndustryData";
@@ -26,6 +26,11 @@ interface EvaluationPromptParams {
 const clampScore = (value: number) => {
   if (Number.isNaN(value)) return undefined;
   return Math.max(0, Math.min(100, Math.round(value)));
+};
+
+const truncate = (value: string, maxLength: number) => {
+  if (value.length <= maxLength) return value;
+  return `${value.slice(0, maxLength)}...`;
 };
 
 const parseGeminiJson = (text: string) => {
@@ -87,6 +92,48 @@ const buildQaSection = (questions: BasicQuestion[], answers: string[]) =>
       return `Q${index + 1}: ${q.question}\nA: ${normalizedAnswer}`;
     })
     .join("\n\n");
+
+const formatCompanyContextForPrompt = (context?: InterviewCompanyContext | null) => {
+  if (!context) return "";
+
+  const lines: string[] = [];
+  if (context.url) lines.push(`参照URL: ${context.url}`);
+  if (context.summary) lines.push(`概要: ${truncate(context.summary, 600)}`);
+
+  if (Array.isArray(context.highlights) && context.highlights.length > 0) {
+    const highlightLines = context.highlights
+      .filter((item): item is string => typeof item === "string" && item.trim().length > 0)
+      .slice(0, 5)
+      .map((item, idx) => `${idx + 1}. ${truncate(item.trim(), 120)}`);
+    if (highlightLines.length > 0) {
+      lines.push("注目ポイント:");
+      highlightLines.forEach(item => lines.push(`  ${item}`));
+    }
+  }
+
+  if (context.extraNotes) lines.push(`追加メモ: ${truncate(context.extraNotes, 400)}`);
+  if (context.rawTextSnippet) lines.push(`サイト抜粋: ${truncate(context.rawTextSnippet, 600)}`);
+
+  if (lines.length === 0) return "";
+  return `\n【企業情報】\n${lines.join("\n")}`;
+};
+
+const buildCompanyContextNotes = (context?: InterviewCompanyContext | null) => {
+  if (!context) return [];
+  const notes: string[] = [];
+  if (context.summary) notes.push(`企業要約: ${truncate(context.summary, 600)}`);
+  if (Array.isArray(context.highlights)) {
+    const highlightText = context.highlights
+      .filter((item): item is string => typeof item === "string" && item.trim().length > 0)
+      .map(item => item.trim())
+      .join(" / ");
+    if (highlightText) notes.push(`注目ポイント: ${truncate(highlightText, 400)}`);
+  }
+  if (context.extraNotes) notes.push(`追加情報: ${truncate(context.extraNotes, 400)}`);
+  if (context.rawTextSnippet) notes.push(`サイト抜粋: ${truncate(context.rawTextSnippet, 600)}`);
+  if (context.url) notes.push(`参照URL: ${context.url}`);
+  return notes;
+};
 
 const evaluateAnswersWithGemini = async ({
   user,
@@ -158,7 +205,17 @@ const evaluateAnswersWithGemini = async ({
 };
 
 // Google Gemini API(@google/genai)を使った面接質問生成
-export async function generateInterviewQuestionsWithGemini({ user, portfolio }: { user: User; portfolio: Portfolio }) {
+export async function generateInterviewQuestionsWithGemini({
+  user,
+  portfolio,
+  companyContext,
+}: {
+  user: User;
+  portfolio: Portfolio;
+  companyContext?: InterviewCompanyContext | null;
+}) {
+  const companySection = formatCompanyContextForPrompt(companyContext);
+
   const prompt = `
 あなたは面接官です。以下の応募者情報をもとに、総合面接で使う質問を5つ日本語で作成してください。
 
@@ -172,6 +229,7 @@ export async function generateInterviewQuestionsWithGemini({ user, portfolio }: 
 課外活動: ${portfolio.extracurricular || ""}
 受賞歴: ${portfolio.awards || ""}
 経験: ${portfolio.experience || ""}
+${companySection}
 
 【質問作成ルール】
 1. 質問は対話形式で120文字以内にしてください。
@@ -207,12 +265,14 @@ export async function generateIndustrySpecificQuestions({
   user,
   portfolio,
   industry,
-  jobType
+  jobType,
+  companyContext,
 }: {
   user: User;
   portfolio: Portfolio;
   industry: string;
   jobType: string;
+  companyContext?: InterviewCompanyContext | null;
 }) {
   const industryData = simpleIndustries.find(i => i.id === industry);
   const jobTypeData = simpleJobTypes[industry]?.find(j => j.id === jobType);
@@ -220,6 +280,8 @@ export async function generateIndustrySpecificQuestions({
   if (!industryData || !jobTypeData) {
     throw new Error('無効な業界・職種です');
   }
+
+  const companySection = formatCompanyContextForPrompt(companyContext);
 
   const prompt = `
 あなたは${industryData.name}業界の${jobTypeData.name}職種の面接官です。
@@ -241,6 +303,7 @@ export async function generateIndustrySpecificQuestions({
 業界説明: ${industryData.description}
 職種: ${jobTypeData.name}
 職種説明: ${jobTypeData.description}
+${companySection}
 
 【質問作成指針】
 1. ${industryData.name}業界の特性を反映した質問
@@ -278,11 +341,13 @@ export async function evaluateGeneralInterviewAnswers({
   portfolio,
   questions,
   answers,
+  companyContext,
 }: {
   user?: Partial<User> | null;
   portfolio?: Partial<Portfolio> | null;
   questions: BasicQuestion[];
   answers: string[];
+  companyContext?: InterviewCompanyContext | null;
 }) {
   const guidelines = [
     "志望動機とキャリア目標が一貫しているかを評価してください。",
@@ -291,7 +356,9 @@ export async function evaluateGeneralInterviewAnswers({
     "回答全体の論理構成とコミュニケーションの分かりやすさを評価してください。",
   ];
 
-  return evaluateAnswersWithGemini({ user, portfolio, questions, answers, guidelines });
+  const additionalContext = buildCompanyContextNotes(companyContext);
+
+  return evaluateAnswersWithGemini({ user, portfolio, questions, answers, guidelines, additionalContext });
 }
 
 export async function evaluateIndustrySpecificAnswers({
@@ -301,6 +368,7 @@ export async function evaluateIndustrySpecificAnswers({
   answers,
   industry,
   jobType,
+  companyContext,
 }: {
   user?: Partial<User> | null;
   portfolio?: Partial<Portfolio> | null;
@@ -308,6 +376,7 @@ export async function evaluateIndustrySpecificAnswers({
   answers: string[];
   industry: string;
   jobType: string;
+  companyContext?: InterviewCompanyContext | null;
 }) {
   const industryData = simpleIndustries.find(item => item.id === industry);
   const jobTypeData = simpleJobTypes[industry]?.find(item => item.id === jobType);
@@ -328,6 +397,7 @@ export async function evaluateIndustrySpecificAnswers({
     `業界説明: ${industryData.description}`,
     `職種: ${jobTypeData.name}`,
     `職種説明: ${jobTypeData.description}`,
+    ...buildCompanyContextNotes(companyContext),
   ];
 
   const evaluation = await evaluateAnswersWithGemini({

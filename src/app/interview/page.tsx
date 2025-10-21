@@ -6,7 +6,7 @@ import InterviewResults from "@/components/InterviewResults";
 import { fetchPortfolioPdfData } from "@/lib/api/portfolio";
 import { fetchUser } from "@/lib/api/user";
 import type { PortfolioPdfData } from "@/types/PortfolioPdf";
-import type { InterviewEvaluation } from "@/types/Interview";
+import type { InterviewCompanyContext, InterviewEvaluation } from "@/types/Interview";
 import { useAuth } from "@/hooks/useAuth";
 
 // // カテゴリごとのダミー質問（10問ずつ）
@@ -19,6 +19,7 @@ export default function InterviewPage() {
   const [error, setError] = useState("");
   const [evaluation, setEvaluation] = useState<InterviewEvaluation | null>(null);
   const [interviewType, setInterviewType] = useState<'general' | 'technical' | 'behavioral'>('general');
+  const [companyContext, setCompanyContext] = useState<InterviewCompanyContext | null>(null);
   const [portfolioData, setPortfolioData] = useState<PortfolioPdfData | null>(null);
   const [portfolioLoading, setPortfolioLoading] = useState(true);
   const [portfolioError, setPortfolioError] = useState("");
@@ -81,7 +82,7 @@ export default function InterviewPage() {
   const resolvedUser = useMemo(() => portfolioData?.user ?? null, [portfolioData]);
   const resolvedPortfolio = useMemo(() => portfolioData?.portfolio ?? null, [portfolioData]);
 
-  const handleStart = async () => {
+  const handleStart = async (context?: InterviewCompanyContext | null) => {
     const type = 'general' as const;
     if (!resolvedUser || !resolvedPortfolio) {
       setError("面接を開始するにはユーザー情報とポートフォリオが必要です。");
@@ -91,6 +92,7 @@ export default function InterviewPage() {
     setLoading(true);
     setError("");
     setInterviewType(type);
+    setCompanyContext(context ?? null);
     
     try {
       const res = await fetch("/api/ai/job-interview", {
@@ -100,6 +102,7 @@ export default function InterviewPage() {
           user: resolvedUser,
           portfolio: resolvedPortfolio,
           type,
+          companyContext: context ?? null,
         }),
       });
       if (!res.ok) throw new Error("APIリクエストに失敗しました");
@@ -132,6 +135,7 @@ export default function InterviewPage() {
           type: interviewType,
           questions,
           answers,
+          companyContext: companyContext ?? null,
         }),
       });
       if (!res.ok) throw new Error("評価APIリクエストに失敗しました");
@@ -151,6 +155,7 @@ export default function InterviewPage() {
     setEvaluation(null);
     setInterviewType('general');
     setQuestions([]);
+    setCompanyContext(null);
   };
 
   return (
