@@ -1,5 +1,5 @@
 import { initializeApp, getApps, type FirebaseApp } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
+import { getAuth, signOut } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 
 let app: FirebaseApp;
@@ -22,3 +22,8 @@ export const getFirebaseApp = () => {
 
 export const auth = () => getAuth(getFirebaseApp());
 export const db = () => getFirestore(getFirebaseApp());
+
+export const logout = async () => {
+  const authentication = auth();
+  await signOut(authentication);
+};
