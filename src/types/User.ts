@@ -1,3 +1,5 @@
+import type { Portfolio } from "./Portforio";
+
 export interface User {
     id: string;
     uid?: string;
@@ -20,6 +22,7 @@ export interface User {
     };
     certifications?: string[] | string;
     awards?: string;
+    portfolio?: Portfolio | null;
     password_hash?: string;
     is_active?: boolean;
     email_verified?: boolean;

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { Download, Printer, X } from 'lucide-react';
+import { Download, ExternalLink, Printer, X } from 'lucide-react';
 import StandardPdfContent from '@/components/preview/StandardPdfContent';
 import TablePdfContent from '@/components/preview/TablePdfContent';
 import ResumePdfContent from '@/components/preview/ResumePdfContent';
@@ -197,6 +197,7 @@ export default function PdfPreviewModal({
     const [error, setError] = useState<string | null>(null);
     const [portfolioData, setPortfolioData] = useState<PortfolioPdfData | null>(null);
     const [isDownloading, setIsDownloading] = useState(false);
+    const [isOpeningSeparateView, setIsOpeningSeparateView] = useState(false);
     const hasPortfolio = Boolean(portfolioData?.portfolio);
     const previewRef = useRef<HTMLDivElement>(null);
 
@@ -281,6 +282,67 @@ export default function PdfPreviewModal({
         }
     };
 
+    const handleOpenInNewTab = () => {
+        if (isLoading || !previewRef.current || isOpeningSeparateView) return;
+
+        setIsOpeningSeparateView(true);
+
+        try {
+            const previewElement = previewRef.current;
+            const newWindow = window.open('', '_blank', 'noopener=yes');
+
+            if (!newWindow) {
+                alert('新しいタブを開けませんでした。ブラウザのポップアップ設定を確認してください。');
+                return;
+            }
+
+            const styleSheets = Array.from(document.querySelectorAll('style, link[rel="stylesheet"]'))
+                .map((node) => node.outerHTML)
+                .join('\n');
+
+            const customStyles = `
+                <style>
+                    body {
+                        margin: 0;
+                        padding: 32px;
+                        background: #f3f4f6;
+                        font-family: sans-serif;
+                        display: flex;
+                        justify-content: center;
+                    }
+                    .preview-container {
+                        background: #ffffff;
+                        box-shadow: 0 20px 45px rgba(30, 41, 59, 0.15);
+                        border-radius: 12px;
+                        overflow: hidden;
+                    }
+                </style>
+            `;
+
+            const html = `<!DOCTYPE html>
+                <html lang="ja">
+                    <head>
+                        <meta charset="utf-8" />
+                        <meta name="viewport" content="width=device-width, initial-scale=1" />
+                        ${styleSheets}
+                        ${customStyles}
+                        <title>PDFプレビュー</title>
+                    </head>
+                    <body>
+                        <div class="preview-container">
+                            ${previewElement.outerHTML}
+                        </div>
+                    </body>
+                </html>`;
+
+            newWindow.document.open();
+            newWindow.document.write(html);
+            newWindow.document.close();
+        } finally {
+            setIsOpeningSeparateView(false);
+        }
+    };
+
     useEffect(() => {
         if (!userId) {
             setPortfolioData(null);
@@ -341,6 +403,13 @@ export default function PdfPreviewModal({
                                 <option value="career">職務経歴書形式</option>
                             </select>
                         </div>
+                        <button
+                            onClick={handleOpenInNewTab}
+                            className="p-2 text-gray-600 hover:text-gray-900 transition-colors"
+                            disabled={isLoading || isOpeningSeparateView}
+                        >
+                            <ExternalLink className={`w-5 h-5 ${isOpeningSeparateView ? 'animate-pulse' : ''}`} />
+                        </button>
                         <button
                             onClick={onPrint}
                             className="p-2 text-gray-600 hover:text-gray-900 transition-colors"
