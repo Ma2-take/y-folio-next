@@ -11,8 +11,8 @@ model User {
   id        String   @id @default(cuid())  // 内部的に使うユーザーID
   name      String?
   email     String?  @unique
-  phone     String
-  address    String
+  phone     String?
+  address    String?
   birthday  DateTime?
   accounts  Account[]  // 複数のSNSログインを紐づけられる
   portfolios Portfolio[]
