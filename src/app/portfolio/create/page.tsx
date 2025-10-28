@@ -82,10 +82,18 @@ const initialForm: FormState = {
   },
 };
 
+const LoadingScreen = () => (
+  <div className="flex flex-col items-center gap-4">
+    <div className="h-12 w-12 animate-spin rounded-full border-4 border-indigo-200 border-t-indigo-600" />
+    <p className="text-sm text-gray-600">読み込み中です…</p>
+  </div>
+);
+
 const PortfolioCreatePage = () => {
   const [form, setForm] = useState<FormState>(initialForm);
   const skillInputRef = useRef<HTMLInputElement>(null);
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
+  const [initializing, setInitializing] = useState(true);
   const router = useRouter();
 
   useEffect(() => {
@@ -96,7 +104,11 @@ const PortfolioCreatePage = () => {
         email: user.email || "",
       }));
     }
-  }, [user]);
+
+    if (!authLoading) {
+      setInitializing(false);
+    }
+  }, [authLoading, user]);
 
   // 基本情報
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -296,6 +308,14 @@ const PortfolioCreatePage = () => {
       alert(message);
     }
   };
+
+  if (authLoading || initializing) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gray-50">
+        <LoadingScreen />
+      </div>
+    );
+  }
 
   return (
     <div className="bg-gray-50 min-h-screen">

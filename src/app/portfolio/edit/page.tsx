@@ -234,6 +234,15 @@ type UserWithPortfolio = User & {
   portfolio?: Portfolio | null;
 };
 
+const LoadingScreen = () => (
+  <div className="flex min-h-screen items-center justify-center bg-gray-50">
+    <div className="flex flex-col items-center gap-4">
+      <div className="h-12 w-12 animate-spin rounded-full border-4 border-indigo-200 border-t-indigo-600" />
+      <p className="text-sm text-gray-600">読み込み中です…</p>
+    </div>
+  </div>
+);
+
 const PortfolioEditPage = () => {
   const [visibilitySettings, setVisibilitySettings] = useState<VisibilitySettings>(defaultVisibilitySettings);
   const [skillInput, setSkillInput] = useState("");
@@ -309,7 +318,7 @@ const PortfolioEditPage = () => {
   }, [loading, user]);
 
   if (loading || form.isSubmitting) {
-    return <div>Loading...</div>;
+    return <LoadingScreen />;
   }
 
   const birthDateValue = (() => {

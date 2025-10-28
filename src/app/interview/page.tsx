@@ -12,6 +12,13 @@ import { useAuth } from "@/hooks/useAuth";
 // // カテゴリごとのダミー質問（10問ずつ）
 // const dummyQuestions = { ... };
 
+const LoadingScreen = () => (
+  <div className="flex flex-col items-center gap-4">
+    <div className="h-12 w-12 animate-spin rounded-full border-4 border-indigo-200 border-t-indigo-600" />
+    <p className="text-sm text-gray-600">読み込み中です…</p>
+  </div>
+);
+
 export default function InterviewPage() {
   const [step, setStep] = useState<'setup' | 'session' | 'result'>('setup');
   const [questions, setQuestions] = useState<{ id: number; question: string }[]>([]);
@@ -158,19 +165,28 @@ export default function InterviewPage() {
     setCompanyContext(null);
   };
 
+  const isLoading = authLoading || portfolioLoading || loading;
+  const hasBlockingError = !isLoading && (portfolioError || error);
+
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-      {(authLoading || portfolioLoading || loading) && <div className="text-lg">読み込み中です。しばらくお待ちください...</div>}
-      {!authLoading && !portfolioLoading && (portfolioError || error) && (
-        <div className="text-red-500">{portfolioError || error}</div>
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6">
+      {isLoading && <LoadingScreen />}
+
+      {hasBlockingError && (
+        <div className="rounded-lg bg-red-50 px-6 py-4 text-sm text-red-600 shadow">
+          {portfolioError || error}
+        </div>
       )}
-      {!authLoading && !portfolioLoading && !portfolioError && !loading && !error && step === 'setup' && (
-    <InterviewSetup onStart={handleStart} />
+
+      {!isLoading && !hasBlockingError && step === 'setup' && (
+        <InterviewSetup onStart={handleStart} />
       )}
-      {!authLoading && !portfolioLoading && !portfolioError && !loading && !error && step === 'session' && (
+
+      {!isLoading && !hasBlockingError && step === 'session' && (
         <InterviewSession onFinish={handleFinish} questions={questions} />
       )}
-      {!authLoading && !portfolioLoading && !portfolioError && !loading && !error && step === 'result' && (
+
+      {!isLoading && !hasBlockingError && step === 'result' && (
         <InterviewResults onRestart={handleRestart} evaluation={evaluation} />
       )}
     </div>
