@@ -47,3 +47,49 @@ model Portfolio {
   user        User     @relation(fields: [userId], references: [id])
   createdAt   DateTime @default(now())
 }
+
+model ResumeReviewHistory {
+  id             String   @id @default(cuid())
+  userId         String
+  tone           String
+  language       String
+  writingStyle   String?
+  honorific      String?
+  audience       String?
+  companyContext String?
+  sections       Json
+  result         Json
+  createdAt      DateTime @default(now())
+
+  @@index([userId], map: "idx_resume_history_user")
+}
+
+model ReviewLog {
+  id                   String   @id @default(cuid())
+  userId               String?
+  tone                 String
+  language             String
+  writingStyle         String?
+  sectionStats         Json
+  overallScore         Int?
+  averageSectionScore  Float?
+  totalSections        Int
+  createdAt            DateTime @default(now())
+
+  @@index([userId, createdAt], map: "idx_review_log_user_created_at")
+}
+
+model ReviewReminder {
+  id          String   @id @default(cuid())
+  userId      String
+  type        String
+  status      String   @default("pending")
+  channel     String   @default("in-app")
+  scheduledAt DateTime
+  payload     Json?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([userId, scheduledAt], map: "idx_review_reminder_user_schedule")
+  @@index([status, scheduledAt], map: "idx_review_reminder_status_schedule")
+}

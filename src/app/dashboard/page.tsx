@@ -9,6 +9,7 @@ import { StatsCard } from '@/components/StatsCard';
 import Analytics from '@/components/Analytics';
 import PortfolioPreview from '@/components/PortfolioPreview';
 import PdfPreviewModal from '@/components/PdfPreviewModal';
+import ReviewInsightsCard from '@/components/ai-review/ReviewInsightsCard';
 import { useAuth } from '@/hooks/useAuth';
 import { fetchUser } from '@/lib/api/user';
 import type { User } from '@/types/User';
@@ -149,6 +150,12 @@ const DashboardPage = () => {
           />
 
           <Analytics />
+
+          {authUser?.uid && (
+            <div className="mt-8">
+              <ReviewInsightsCard userId={authUser.uid} />
+            </div>
+          )}
         </main>
       </>
     );
