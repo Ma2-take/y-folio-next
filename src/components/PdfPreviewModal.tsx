@@ -8,9 +8,7 @@ import ResumePdfContent from '@/components/preview/ResumePdfContent';
 import CareerPdfContent from '@/components/preview/CareerPdfContent';
 import { fetchPortfolioPdfData } from '@/lib/api/portfolio';
 import { PortfolioPdfData } from '@/types/PortfolioPdf';
-import html2canvas from 'html2canvas';
-import jsPDF from 'jspdf';
-import { converter, parse } from 'culori';
+import { generatePortfolioDocx } from '@/lib/word/portfolioDocx';
 
 const MM_PER_INCH = 25.4;
 const SCREEN_DPI = 96;
@@ -19,162 +17,6 @@ const A4_HEIGHT_MM = 297;
 const A4_WIDTH_PX = Math.round((A4_WIDTH_MM / MM_PER_INCH) * SCREEN_DPI); // ≈ 794px
 const A4_HEIGHT_PX = Math.round((A4_HEIGHT_MM / MM_PER_INCH) * SCREEN_DPI); // ≈ 1123px
 
-const rgbConverter = converter('rgb');
-
-const clampChannel = (value: number): number => {
-    if (Number.isNaN(value)) return 0;
-    if (value <= 0) return 0;
-    if (value >= 1) return 1;
-    return value;
-};
-
-const formatRgbString = (value: string): string =>
-    value.replace(/oklch\(([^)]+)\)/g, (match) => {
-        const parsed = parse(match);
-        if (!parsed) {
-            return '#000000';
-        }
-        const rgb = rgbConverter(parsed);
-        if (!rgb) {
-            return '#000000';
-        }
-        const r = Math.round(clampChannel(rgb.r) * 255);
-        const g = Math.round(clampChannel(rgb.g) * 255);
-        const b = Math.round(clampChannel(rgb.b) * 255);
-        const alpha = typeof rgb.alpha === 'number' ? clampChannel(rgb.alpha) : 1;
-
-        if (alpha < 1) {
-            return `rgba(${r}, ${g}, ${b}, ${Number(alpha.toFixed(3))})`;
-        }
-        return `rgb(${r}, ${g}, ${b})`;
-    });
-
-const applyColorFallbacks = (source: Element, target: Element): void => {
-    if (!(target instanceof HTMLElement || target instanceof SVGElement)) {
-        return;
-    }
-
-    const computed = window.getComputedStyle(source);
-    const properties = Array.from(computed);
-
-    properties.forEach((property) => {
-        const value = computed.getPropertyValue(property);
-        if (!value || !value.includes('oklch')) {
-            return;
-        }
-
-        const fallback = formatRgbString(value);
-        if (!fallback || fallback === value) {
-            return;
-        }
-
-        const priority = computed.getPropertyPriority(property);
-
-        if (target instanceof HTMLElement) {
-            target.style.setProperty(property, fallback, priority);
-        } else if (target instanceof SVGElement) {
-            target.setAttribute(property, fallback);
-        }
-    });
-
-    const sourceChildren = Array.from(source.children);
-    const targetChildren = Array.from(target.children);
-
-    const childCount = Math.min(sourceChildren.length, targetChildren.length);
-    for (let i = 0; i < childCount; i += 1) {
-        applyColorFallbacks(sourceChildren[i], targetChildren[i]);
-    }
-};
-
-const createNormalizedClone = (
-    source: HTMLElement | null,
-    options: {
-        width?: number;
-        minHeight?: number;
-    } = {}
-) => {
-    if (!source) {
-        return null;
-    }
-
-    const copyRootStyles = (origin: HTMLElement, clone: HTMLElement) => {
-        const computed = window.getComputedStyle(origin);
-        const layoutProperties = [
-            'box-sizing',
-            'display',
-            'flex-direction',
-            'align-items',
-            'justify-content',
-            'gap',
-            'row-gap',
-            'column-gap',
-            'margin',
-            'padding',
-            'border',
-            'border-radius',
-            'box-shadow',
-            'background',
-            'background-color',
-            'max-width',
-            'min-width',
-            'width',
-            'min-height',
-            'max-height',
-            'color',
-            'font-family',
-            'font-size',
-            'line-height',
-            'letter-spacing',
-            'text-align',
-        ];
-
-        layoutProperties.forEach((property) => {
-            const value = computed.getPropertyValue(property);
-            if (!value) return;
-            const priority = computed.getPropertyPriority(property);
-            clone.style.setProperty(property, value, priority);
-        });
-    };
-
-    const wrapper = document.createElement('div');
-    wrapper.style.position = 'fixed';
-    wrapper.style.left = '-10000px';
-    wrapper.style.top = '0';
-    wrapper.style.pointerEvents = 'none';
-    wrapper.style.zIndex = '-1';
-    wrapper.style.backgroundColor = '#ffffff';
-    wrapper.style.visibility = 'visible';
-    wrapper.style.opacity = '1';
-
-    const clone = source.cloneNode(true) as HTMLElement;
-    const rect = source.getBoundingClientRect();
-    const width = options.width ?? (rect.width || source.offsetWidth || source.scrollWidth);
-    const height = options.minHeight ?? (rect.height || source.offsetHeight || source.scrollHeight);
-
-    clone.style.width = `${width}px`;
-    clone.style.minHeight = `${height}px`;
-    clone.style.maxWidth = `${width}px`;
-    clone.style.boxSizing = 'border-box';
-    clone.style.backgroundColor = '#ffffff';
-    clone.removeAttribute('id');
-
-    copyRootStyles(source, clone);
-
-    wrapper.appendChild(clone);
-    document.body.appendChild(wrapper);
-
-    applyColorFallbacks(source, clone);
-
-    return {
-        wrapper,
-        clone,
-        cleanup: () => {
-            if (wrapper.parentNode) {
-                wrapper.parentNode.removeChild(wrapper);
-            }
-        },
-    } as const;
-};
 
 interface Props {
     pdfFormat: 'standard' | 'table' | 'resume' | 'career';
@@ -207,77 +49,31 @@ export default function PdfPreviewModal({
 
     const handleDownload = async () => {
         if (isLoading || isDownloading) return;
-
-        const cloneResult = createNormalizedClone(previewRef.current, {
-            width: A4_WIDTH_PX,
-            minHeight: A4_HEIGHT_PX,
-        });
-
-        if (!cloneResult) {
-            alert('ダウンロード対象のプレビューを取得できませんでした');
+        if (!portfolioData || !portfolioData.portfolio) {
+            alert('ダウンロード対象のポートフォリオ情報が見つかりませんでした');
             return;
         }
 
+        setIsDownloading(true);
+
         try {
-            setIsDownloading(true);
-            try {
-                await document.fonts?.ready;
-            } catch {
-                // フォントの読み込み失敗は無視
-            }
-
-            const captureElement = cloneResult.clone;
-            const captureWidth = Math.max(
-                A4_WIDTH_PX,
-                captureElement.scrollWidth,
-                captureElement.offsetWidth,
-                captureElement.clientWidth
-            );
-            const captureHeight = Math.max(
-                A4_HEIGHT_PX,
-                captureElement.scrollHeight,
-                captureElement.offsetHeight,
-                captureElement.clientHeight
+            const blob = await generatePortfolioDocx(portfolioData, pdfFormat);
+            const fileSaverModule = await import('file-saver');
+            const saveAs = (
+                (fileSaverModule.default as ((file: Blob, filename: string) => void) | undefined) ??
+                (fileSaverModule as { saveAs?: (file: Blob, filename: string) => void }).saveAs
             );
 
-            const canvas = await html2canvas(captureElement, {
-                scale: 2,
-                useCORS: true,
-                allowTaint: true,
-                backgroundColor: '#ffffff',
-                width: captureWidth,
-                height: captureHeight,
-                windowWidth: captureWidth,
-                windowHeight: captureHeight,
-            });
-
-            const imgData = canvas.toDataURL('image/png');
-            const pdf = new jsPDF('p', 'mm', 'a4');
-            const pageWidth = pdf.internal.pageSize.getWidth();
-            const pageHeight = pdf.internal.pageSize.getHeight();
-            const imgWidth = pageWidth;
-            const imgHeight = (canvas.height * pageWidth) / canvas.width;
-
-            let remainingHeight = imgHeight;
-            let position = 0;
-
-            pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-            remainingHeight -= pageHeight;
-
-            while (remainingHeight > 0) {
-                position -= pageHeight;
-                pdf.addPage();
-                pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-                remainingHeight -= pageHeight;
+            if (!saveAs) {
+                throw new Error('saveAs 関数を読み込めませんでした');
             }
 
-            pdf.save('portfolio.pdf');
+            saveAs(blob, 'portfolio.docx');
             onDownload?.();
         } catch (downloadError) {
-            console.error('PDF download failed:', downloadError);
-            alert('PDFのダウンロードに失敗しました');
+            console.error('Word download failed:', downloadError);
+            alert('Wordファイルのダウンロードに失敗しました');
         } finally {
-            cloneResult.cleanup();
             setIsDownloading(false);
         }
     };
