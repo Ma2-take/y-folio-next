@@ -211,7 +211,7 @@ export default function AiResumeReviewPage() {
   const [result, setResult] = useState<ResumeReviewResponse | null>(null);
   const [submittedSections, setSubmittedSections] = useState<ResumeSectionInput[] | null>(null);
   const [syncMessage, setSyncMessage] = useState<string | null>(null);
-  const [autoSubmitTriggered, setAutoSubmitTriggered] = useState(false);
+  const [hasLoadedFromPortfolio, setHasLoadedFromPortfolio] = useState(false);
   const { user, loading: authLoading } = useAuth();
   const { history, addEntry, removeEntry, clearHistory, replaceHistory } = useResumeReviewHistory();
   const [historySyncing, setHistorySyncing] = useState(false);
@@ -272,6 +272,27 @@ export default function AiResumeReviewPage() {
   const handleAddSection = () => {
     setSections(prev => [...prev, createEmptySection(prev.length)]);
   };
+
+  const handleLoadFromPortfolio = useCallback(() => {
+    if (!portfolioUser) {
+      setError("ポートフォリオ情報が取得できませんでした");
+      return;
+    }
+
+    const portfolioSections = buildSectionsFromPortfolio(portfolioUser);
+    if (portfolioSections.length === 0) {
+      setError("ポートフォリオから読み込めるセクションが見つかりませんでした");
+      return;
+    }
+
+    setError(null);
+    setSections(portfolioSections);
+    setHasLoadedFromPortfolio(true);
+    setResult(null);
+    setSubmittedSections(null);
+    setPendingQuestions([]);
+    setAnsweredFollowUps([]);
+  }, [portfolioUser]);
 
   const handleRemoveSection = (id: string) => {
     if (sectionCount === 1) return;
@@ -391,7 +412,7 @@ export default function AiResumeReviewPage() {
   const handleSelectHistory = useCallback((entry: ResumeReviewHistoryEntry) => {
     const restoredSections: EditorSection[] = entry.sections.map(section => ({ ...section }));
     setSections(restoredSections);
-    setAutoSubmitTriggered(true);
+    setHasLoadedFromPortfolio(true);
     setSettings({
       tone: entry.tone ?? defaultSettings.tone,
       language: entry.language ?? defaultSettings.language,
@@ -523,24 +544,6 @@ export default function AiResumeReviewPage() {
     }
   }, [result]);
 
-  useEffect(() => {
-    if (autoSubmitTriggered) {
-      return;
-    }
-    if (!portfolioUser || portfolioLoading) {
-      return;
-    }
-
-    const portfolioSections = buildSectionsFromPortfolio(portfolioUser);
-    if (portfolioSections.length === 0) {
-      return;
-    }
-
-    setSections(portfolioSections);
-    setAutoSubmitTriggered(true);
-    void submitReview(portfolioSections);
-  }, [autoSubmitTriggered, portfolioLoading, portfolioUser, submitReview]);
-
   const handleSettingsSave = (next: ReviewStyleOptions) => {
     setSettings(next);
     setIsSettingsOpen(false);
@@ -634,6 +637,14 @@ export default function AiResumeReviewPage() {
               placeholder="企業の特徴や募集要項など、文脈に関する情報があれば入力してください"
             />
           </div>
+          <button
+            type="button"
+            onClick={handleLoadFromPortfolio}
+            className="w-full rounded border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-indigo-400 hover:text-indigo-600 disabled:opacity-60"
+            disabled={portfolioLoading || !portfolioUser}
+          >
+            {portfolioLoading ? "ポートフォリオを読み込み中..." : hasLoadedFromPortfolio ? "ポートフォリオを再読み込み" : "ポートフォリオから読み込む"}
+          </button>
           <button
             type="button"
             onClick={() => submitReview()}
