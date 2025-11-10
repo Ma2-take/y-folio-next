@@ -90,7 +90,7 @@ export default function PortfolioPreview({ user, handleShareClick, handlePdfPrev
         <h3 className="text-lg font-semibold text-gray-800 mb-4">クイックアクション</h3>
         <div className="space-y-3">
           <a href="/portfolio/edit" className="flex items-center p-4 border-2 border-transparent rounded-lg hover:bg-gray-50 hover:border-indigo-500"><Edit className="text-blue-600 w-6 h-6 mr-4" /><div><p className="font-medium text-gray-800">ポートフォリオを編集</p><p className="text-sm text-gray-500">基本情報や実績を更新</p></div></a>
-          <a href="/portfolio/preview" className="flex items-center p-4 border-2 border-transparent rounded-lg hover:bg-gray-50 hover:border-indigo-500"><Eye className="text-green-600 w-6 h-6 mr-4" /><div><p className="font-medium text-gray-800">プレビュー</p><p className="text-sm text-gray-500">公開ページを確認</p></div></a>
+          <a href="/ai-review" className="flex items-center p-4 border-2 border-transparent rounded-lg hover:bg-gray-50 hover:border-indigo-500"><Eye className="text-green-600 w-6 h-6 mr-4" /><div><p className="font-medium text-gray-800">AIレビュー</p><p className="text-sm text-gray-500">履歴書・職務経歴書をAIで添削</p></div></a>
           <button onClick={handleShareClick} className="flex items-center p-4 border-2 border-transparent rounded-lg hover:bg-gray-50 hover:border-indigo-500 text-left w-full">
             <Share2 className="text-purple-600 w-6 h-6 mr-4" />
             <div>

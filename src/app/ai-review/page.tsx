@@ -2,6 +2,8 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import type { User } from "@/types/User";
+import type { Project } from "@/types/Project";
 import ReviewResults from "@/components/ai-review/ReviewResults";
 import ReviewHistoryPanel from "@/components/ai-review/ReviewHistoryPanel";
 import ReviewSettingsModal from "@/components/ai-review/ReviewSettingsModal";
@@ -24,11 +26,107 @@ import { usePortfolioSync, suggestFieldForSection, type PortfolioSyncAssignment 
 
 interface EditorSection extends ResumeSectionInput {}
 
+const createSectionId = (seed: string) => {
+  const safeSeed = seed.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+    return `${safeSeed || "section"}-${crypto.randomUUID()}`;
+  }
+  return `${safeSeed || "section"}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+};
+
 const createEmptySection = (index: number): EditorSection => ({
-  id: `section-${Date.now()}-${index}`,
+  id: createSectionId(`manual-${index}`),
   title: index === 0 ? "自己紹介" : "経験",
   text: "",
 });
+
+const normalizeTextValue = (value: unknown): string => {
+  if (Array.isArray(value)) {
+    return value
+      .map((item) => (typeof item === "string" ? item.trim() : ""))
+      .filter((item) => item.length > 0)
+      .join("\n");
+  }
+  if (typeof value === "string") {
+    return value.replace(/\r\n?/g, "\n").split("\n").map((line) => line.trim()).filter((line) => line.length > 0).join("\n");
+  }
+  return "";
+};
+
+const formatProjectSection = (project: Project): string => {
+  const lines: string[] = [];
+  if (project.description) {
+    lines.push(project.description.trim());
+  }
+  if (project.url) {
+    lines.push(`URL: ${project.url}`);
+  }
+  return lines.join("\n");
+};
+
+const buildSectionsFromPortfolio = (user: User | null): EditorSection[] => {
+  if (!user?.portfolio) {
+    return [];
+  }
+
+  const sections: EditorSection[] = [];
+  const portfolio = user.portfolio as (NonNullable<User["portfolio"]> & { projects?: Project[] });
+
+  const pushSection = (title: string, content: unknown, idSeed?: string) => {
+    const text = normalizeTextValue(content);
+    if (text.length === 0) {
+      return;
+    }
+    sections.push({
+      id: createSectionId(idSeed ?? title),
+      title,
+      text,
+    });
+  };
+
+  pushSection("自己紹介", portfolio.selfIntroduction ?? user.selfIntroduction ?? user.profile);
+
+  const experienceBlocks = [
+    { label: "職務経験", value: portfolio.experience },
+    { label: "インターンシップ", value: portfolio.internship },
+    { label: "課外活動", value: portfolio.extracurricular },
+    { label: "受賞歴", value: portfolio.awards ?? user.awards },
+  ]
+    .map((block) => {
+      const body = normalizeTextValue(block.value);
+      if (!body) return "";
+      return `${block.label}\n${body}`;
+    })
+    .filter((block) => block.length > 0)
+    .join("\n\n");
+
+  if (experienceBlocks.length > 0) {
+    pushSection("経験・実績", experienceBlocks, "experience");
+  }
+
+  const projects = Array.isArray(portfolio.projects) ? portfolio.projects : [];
+  projects.forEach((project, index) => {
+    const formatted = formatProjectSection(project);
+    if (!formatted) {
+      return;
+    }
+    const title = project.name ? `プロジェクト: ${project.name}` : `プロジェクト${index + 1}`;
+    pushSection(title, formatted, `project-${project.id || index}`);
+  });
+
+  const certificationText = normalizeTextValue(portfolio.certifications ?? user.certifications);
+  if (certificationText.length > 0) {
+    pushSection("資格・認定", certificationText, "certifications");
+  }
+
+  pushSection("設問・自由記述", [portfolio.customQuestions, portfolio.additionalInfo], "additional-info");
+
+  if (sections.length === 0) {
+    return [];
+  }
+
+  return sections;
+};
 
 const sanitizeSections = (sections: EditorSection[]) =>
   sections
@@ -113,6 +211,7 @@ export default function AiResumeReviewPage() {
   const [result, setResult] = useState<ResumeReviewResponse | null>(null);
   const [submittedSections, setSubmittedSections] = useState<ResumeSectionInput[] | null>(null);
   const [syncMessage, setSyncMessage] = useState<string | null>(null);
+  const [autoSubmitTriggered, setAutoSubmitTriggered] = useState(false);
   const { user, loading: authLoading } = useAuth();
   const { history, addEntry, removeEntry, clearHistory, replaceHistory } = useResumeReviewHistory();
   const [historySyncing, setHistorySyncing] = useState(false);
@@ -292,6 +391,7 @@ export default function AiResumeReviewPage() {
   const handleSelectHistory = useCallback((entry: ResumeReviewHistoryEntry) => {
     const restoredSections: EditorSection[] = entry.sections.map(section => ({ ...section }));
     setSections(restoredSections);
+    setAutoSubmitTriggered(true);
     setSettings({
       tone: entry.tone ?? defaultSettings.tone,
       language: entry.language ?? defaultSettings.language,
@@ -422,6 +522,24 @@ export default function AiResumeReviewPage() {
       setSyncMessage(null);
     }
   }, [result]);
+
+  useEffect(() => {
+    if (autoSubmitTriggered) {
+      return;
+    }
+    if (!portfolioUser || portfolioLoading) {
+      return;
+    }
+
+    const portfolioSections = buildSectionsFromPortfolio(portfolioUser);
+    if (portfolioSections.length === 0) {
+      return;
+    }
+
+    setSections(portfolioSections);
+    setAutoSubmitTriggered(true);
+    void submitReview(portfolioSections);
+  }, [autoSubmitTriggered, portfolioLoading, portfolioUser, submitReview]);
 
   const handleSettingsSave = (next: ReviewStyleOptions) => {
     setSettings(next);
