@@ -36,14 +36,14 @@ model Portfolio {
   faculty     String
   grade       String
   email       String
-  selfIntroduction String
-  skillTags   String   // JSON文字列で保存
-  certifications String
-  projects    String   // JSON文字列で保存
-  experience  String   // JSON文字列で保存
-  other       String   // JSON文字列で保存
-  publication String   // JSON文字列で保存
-  visibilitySettings String // JSON文字列で保存
+  selfIntroduction String   @db.Text
+  skillTags   String   @db.Text
+  certifications String @db.Text
+  projects    String   @db.Text
+  experience  String   @db.Text
+  other       String   @db.Text
+  publication String   @db.Text
+  visibilitySettings String @db.Text
   user        User     @relation(fields: [userId], references: [id])
   createdAt   DateTime @default(now())
 }
