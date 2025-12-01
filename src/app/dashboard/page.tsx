@@ -6,7 +6,6 @@ import { useRouter } from 'next/navigation';
 import SideBar from '@/components/SideBar';
 import { UserHeader } from '@/components/UserHeader';
 import { StatsCard } from '@/components/StatsCard';
-import Analytics from '@/components/Analytics';
 import PortfolioPreview from '@/components/PortfolioPreview';
 import PdfPreviewModal from '@/components/PdfPreviewModal';
 import ReviewInsightsCard from '@/components/ai-review/ReviewInsightsCard';
@@ -148,8 +147,6 @@ const DashboardPage = () => {
             handleShareClick={handleInterviewClick}
             handlePdfPreview={handlePdfPreview}
           />
-
-          <Analytics />
 
           {authUser?.uid && (
             <div className="mt-8">

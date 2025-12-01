@@ -64,14 +64,39 @@ export async function POST(request: NextRequest) {
       ? data.projects
       : []
 
-  const ensureObject = (value: unknown) =>
-    value && typeof value === 'object' && !Array.isArray(value) ? value as Record<string, unknown> : {}
+  const parseObject = (value: unknown, fallbackFromString?: (raw: string) => Record<string, unknown>) => {
+    if (typeof value === 'string') {
+      const trimmed = value.trim()
+      if (!trimmed) {
+        return {}
+      }
+      try {
+        const parsed = JSON.parse(trimmed)
+        if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+          return { ...(parsed as Record<string, unknown>) }
+        }
+      } catch (error) {
+        if (fallbackFromString) {
+          return fallbackFromString(trimmed)
+        }
+        console.warn('Failed to parse JSON object field', { value: trimmed, error })
+      }
+      if (fallbackFromString) {
+        return fallbackFromString(trimmed)
+      }
+      return {}
+    }
+
+    if (value && typeof value === 'object' && !Array.isArray(value)) {
+      return { ...(value as Record<string, unknown>) }
+    }
+
+    return {}
+  }
 
   const experienceInput = portfolioSource.experience ?? data.experience
-  const experienceObject = ensureObject(experienceInput)
-  const summaryString = toNullableString(
-    typeof experienceInput === 'string' ? experienceInput : experienceObject.summary
-  )
+  const experienceObject = parseObject(experienceInput, (raw) => ({ summary: raw }))
+  const summaryString = toNullableString(experienceObject.summary)
   if (summaryString !== null) {
     experienceObject.summary = summaryString
   } else if ('summary' in experienceObject) {
@@ -103,7 +128,7 @@ export async function POST(request: NextRequest) {
   }
 
   const otherInput = portfolioSource.other ?? data.other
-  const otherObject = ensureObject(otherInput)
+  const otherObject = parseObject(otherInput)
   const customQuestionsString = toNullableString(
     portfolioSource.customQuestions ?? data.customQuestions ?? otherObject.customQuestions ?? undefined
   )
@@ -121,8 +146,8 @@ export async function POST(request: NextRequest) {
     delete otherObject.additionalInfo
   }
 
-  const publication = ensureObject(portfolioSource.publication ?? data.publication)
-  const visibilitySettings = ensureObject(
+  const publication = parseObject(portfolioSource.publication ?? data.publication)
+  const visibilitySettings = parseObject(
     portfolioSource.visibilitySettings ?? data.visibilitySettings
   )
 

@@ -6,6 +6,7 @@ const EXPERIENCE_LABELS: Record<string, string> = {
     internship: 'インターンシップ',
     extracurricular: '課外活動',
     awards: '受賞歴',
+    summary: 'サマリー',
 };
 
 type DocxModule = typeof import('docx');
@@ -27,6 +28,84 @@ interface ExtractedPortfolioDetails {
     createdDateLabel: string;
 }
 
+const normalizeExperienceValue = (raw: unknown): string => {
+    if (raw == null) {
+        return '';
+    }
+
+    const coerceString = (value: unknown): string => {
+        if (typeof value === 'string') {
+            return value.trim();
+        }
+        if (value == null) {
+            return '';
+        }
+        return String(value).trim();
+    };
+
+    const tryParseObject = (text: string): string => {
+        if (!text) {
+            return '';
+        }
+
+        const startsWithJsonToken = (input: string) => {
+            const firstChar = input[0];
+            return firstChar === '{' || firstChar === '[';
+        };
+
+        if (!startsWithJsonToken(text)) {
+            return text;
+        }
+
+        try {
+            const parsed = JSON.parse(text);
+            if (Array.isArray(parsed)) {
+                const items = parsed
+                    .map(coerceString)
+                    .filter((item) => item.length > 0);
+                return items.join('\n');
+            }
+            if (parsed && typeof parsed === 'object') {
+                const entries = Object.entries(parsed)
+                    .map(([key, value]) => {
+                        const normalized = coerceString(value);
+                        if (!normalized) {
+                            return '';
+                        }
+                        const label = EXPERIENCE_LABELS[key] ?? key;
+                        return `${label}: ${normalized}`;
+                    })
+                    .filter((item) => item.length > 0);
+                if (entries.length > 0) {
+                    return entries.join('\n');
+                }
+            }
+        } catch {
+            return text;
+        }
+
+        return text;
+    };
+
+    if (typeof raw === 'string') {
+        const trimmed = raw.trim();
+        if (!trimmed) {
+            return '';
+        }
+        return tryParseObject(trimmed);
+    }
+
+    if (typeof raw === 'object') {
+        try {
+            return tryParseObject(JSON.stringify(raw));
+        } catch {
+            return '';
+        }
+    }
+
+    return coerceString(raw);
+};
+
 const extractPortfolioDetails = (data: PortfolioPdfData): ExtractedPortfolioDetails => {
     const { user, portfolio } = data;
 
@@ -46,12 +125,18 @@ const extractPortfolioDetails = (data: PortfolioPdfData): ExtractedPortfolioDeta
     const other = portfolio?.other ?? {};
 
     const experienceEntries = Object.entries(experience)
-        .filter(([, value]) => typeof value === 'string' && value.trim().length > 0)
-        .map(([key, value]) => ({
-            key,
-            label: EXPERIENCE_LABELS[key] ?? key,
-            value: String(value),
-        }));
+        .map(([key, value]) => {
+            const normalized = normalizeExperienceValue(value);
+            if (!normalized) {
+                return null;
+            }
+            return {
+                key,
+                label: EXPERIENCE_LABELS[key] ?? key,
+                value: normalized,
+            };
+        })
+        .filter((entry): entry is { key: string; label: string; value: string } => entry !== null);
 
     const trimmedAdditionalInfo = typeof other.additionalInfo === 'string' ? other.additionalInfo.trim() : '';
     const trimmedCustomQuestions = typeof other.customQuestions === 'string' ? other.customQuestions.trim() : '';
