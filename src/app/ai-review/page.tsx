@@ -572,8 +572,8 @@ export default function AiResumeReviewPage() {
   return (
     <div className="mx-auto max-w-5xl px-4 py-12">
       <header>
-        <h1 className="text-2xl font-bold text-slate-900">AI履歴書・職務経歴書 添削</h1>
-        <p className="mt-2 text-sm text-slate-600">履歴書の各セクションを入力すると、AIが改善案と差分ハイライトを返します。</p>
+        <h1 className="text-2xl font-bold text-slate-900">AI添削</h1>
+        <p className="mt-2 text-sm text-slate-600">各セクションに入力すると、AIが改善案と差分ハイライトを返します。</p>
       </header>
 
       <div className="mt-8 grid gap-6 lg:grid-cols-[340px_1fr]">
