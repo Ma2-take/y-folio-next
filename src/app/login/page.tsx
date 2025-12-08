@@ -1,6 +1,5 @@
 "use client";
 import { FcGoogle } from "react-icons/fc";
-import { FaGithub } from "react-icons/fa";
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
@@ -8,11 +7,7 @@ import { useRouter } from "next/navigation";
 import { auth } from "@/lib/firebase.client";
 import { useAuth } from "@/hooks/useAuth";
 import type { UserCredential } from "firebase/auth";
-import {
-  GoogleAuthProvider,
-  GithubAuthProvider,
-  signInWithPopup,
-} from "firebase/auth";
+import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 
 const LoadingSpinner = ({ message }: { message: string }) => (
   <div className="flex flex-col items-center gap-4">
@@ -86,28 +81,6 @@ export default function LoginPage() {
     }
   };
 
-  // GitHub ログイン
-  const handleGithubLogin = async () => {
-    setError("");
-    setIsLoading(true);
-    try {
-      const provider = new GithubAuthProvider();
-      const result: UserCredential = await signInWithPopup(auth(), provider);
-
-      const user = result.user;
-      console.log("GitHub Login Success:", user);
-      await syncUserToPrisma(user);
-
-      localStorage.setItem("user", JSON.stringify(user));
-      router.push("/dashboard");
-    } catch (err) {
-      console.error(err);
-      setError("GitHubログインに失敗しました");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   return (
     <div className="relative flex min-h-screen items-center justify-center bg-gray-50">
       <div className="w-full max-w-md bg-white rounded-xl shadow-lg p-8">
@@ -132,32 +105,18 @@ export default function LoginPage() {
           </div>
         )}
 
-        {/* Google / GitHub ログインボタン */}
-        <div className="flex flex-col gap-3 sm:flex-row sm:justify-center sm:gap-4">
+        {/* Google ログインボタン */}
+        <div className="flex justify-center">
           <button
             onClick={handleGoogleLogin}
-            className="flex w-full items-center justify-center border border-gray-300 rounded-lg py-2 hover:bg-gray-50 transition sm:max-w-xs"
+            className="flex w-full max-w-xs items-center justify-center border border-gray-300 rounded-lg py-2 hover:bg-gray-50 transition"
           >
             <FcGoogle className="mr-2 w-5 h-5" />
             Googleでログイン
           </button>
-          <button
-            onClick={handleGithubLogin}
-            className="flex w-full items-center justify-center border border-gray-300 rounded-lg py-2 hover:bg-gray-50 transition sm:max-w-xs"
-          >
-            <FaGithub className="mr-2 w-5 h-5" />
-            GitHubでログイン
-          </button>
         </div>
 
-        <div className="mt-6 text-center">
-          <a
-            href="/recruiter/login"
-            className="text-sm text-gray-500 hover:text-indigo-600"
-          >
-            採用担当者の方はこちら
-          </a>
-        </div>
+
       </div>
 
       {isLoading && (
