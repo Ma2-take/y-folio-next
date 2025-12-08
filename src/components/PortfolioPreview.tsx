@@ -98,7 +98,7 @@ export default function PortfolioPreview({ user, handleShareClick, handlePdfPrev
               <p className="text-sm text-gray-500">AIを使った面接シミュレーション</p>
             </div>
           </button>
-          <button onClick={handlePdfPreview} className="w-full flex items-center p-4 border-2 border-transparent rounded-lg hover:bg-gray-50 hover:border-indigo-500 text-left"><FileText className="text-red-600 w-6 h-6 mr-4" /><div><p className="font-medium text-gray-800">PDFで出力</p><p className="text-sm text-gray-500">印刷用のPDFをダウンロード</p></div></button>
+          <button onClick={handlePdfPreview} className="w-full flex items-center p-4 border-2 border-transparent rounded-lg hover:bg-gray-50 hover:border-indigo-500 text-left"><FileText className="text-red-600 w-6 h-6 mr-4" /><div><p className="font-medium text-gray-800">PDFで出力</p><p className="text-sm text-gray-500">印刷用データをダウンロード</p></div></button>
         </div>
       </div>
       <div className="lg:col-span-2 bg-white rounded-lg shadow-md p-6">
