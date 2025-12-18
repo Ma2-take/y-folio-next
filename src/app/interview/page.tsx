@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import InterviewSetup from "@/components/InterviewSetup";
 import InterviewSession from "@/components/InterviewSession";
 import InterviewResults from "@/components/InterviewResults";
@@ -20,6 +21,7 @@ const LoadingScreen = () => (
 );
 
 export default function InterviewPage() {
+  const router = useRouter();
   const [step, setStep] = useState<'setup' | 'session' | 'result'>('setup');
   const [questions, setQuestions] = useState<{ id: number; question: string }[]>([]);
   const [loading, setLoading] = useState(false);
@@ -32,6 +34,12 @@ export default function InterviewPage() {
   const [portfolioError, setPortfolioError] = useState("");
   const { user, loading: authLoading } = useAuth();
   const providerUid = user?.uid ?? null;
+
+  useEffect(() => {
+    if (!authLoading && !user) {
+      router.replace("/login");
+    }
+  }, [authLoading, user, router]);
 
   useEffect(() => {
     let mounted = true;

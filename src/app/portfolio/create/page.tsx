@@ -97,6 +97,12 @@ const PortfolioCreatePage = () => {
   const router = useRouter();
 
   useEffect(() => {
+    if (!authLoading && !user) {
+      router.replace('/login');
+    }
+  }, [authLoading, user, router]);
+
+  useEffect(() => {
     if (user) {
       setForm((prev) => ({
         ...prev,

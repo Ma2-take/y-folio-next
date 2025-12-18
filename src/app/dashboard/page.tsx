@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 
 import SideBar from '@/components/SideBar';
 import { UserHeader } from '@/components/UserHeader';
-import { StatsCard } from '@/components/StatsCard';
 import PortfolioPreview from '@/components/PortfolioPreview';
 import PdfPreviewModal from '@/components/PdfPreviewModal';
 import ReviewInsightsCard from '@/components/ai-review/ReviewInsightsCard';
@@ -140,8 +139,6 @@ const DashboardPage = () => {
         <UserHeader user={dbUser} />
 
         <main className="p-6">
-          <StatsCard />
-
           <PortfolioPreview
             user={dbUser}
             handleShareClick={handleInterviewClick}

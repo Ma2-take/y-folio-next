@@ -52,6 +52,28 @@ const languageLabelMap: Record<string, string> = {
   en: "英語",
 };
 
+const reminderTypeLabelMap: Record<ReminderType, string> = {
+  follow_up_review: "再添削フォロー",
+  interview_preparation: "面接前リマインド",
+  interview_followup: "面接後フォロー",
+  custom: "カスタム",
+};
+
+const reminderChannelLabelMap: Record<ReminderChannel, string> = {
+  "in-app": "アプリ内",
+  email: "メール",
+  push: "プッシュ通知",
+};
+
+const reminderPayloadLabelMap: Record<string, string> = {
+  note: "メモ",
+  message: "メッセージ",
+  scheduledAt: "再通知予定日時",
+  context: "コンテキスト",
+  company: "企業名",
+  position: "ポジション",
+};
+
 export default function ReviewInsightsCard({ userId }: ReviewInsightsCardProps) {
   const [logs, setLogs] = useState<ResumeReviewLogEntry[]>([]);
   const [trend, setTrend] = useState<ResumeReviewTrendPoint[]>([]);
@@ -343,7 +365,10 @@ export default function ReviewInsightsCard({ userId }: ReviewInsightsCardProps) 
                     <div className="flex flex-wrap items-center justify-between gap-2">
                       <div>
                         <p className="text-sm font-semibold text-slate-800">{formatDateTime(reminder.scheduledAt)}</p>
-                        <p className="text-xs text-slate-500">種別: {reminder.type}</p>
+                        <p className="text-xs text-slate-500">
+                          種別: {reminderTypeLabelMap[reminder.type] ?? reminder.type}
+                          <span className="ml-2">通知: {reminderChannelLabelMap[reminder.channel] ?? reminder.channel}</span>
+                        </p>
                       </div>
                       <div className="flex gap-2">
                         <button
@@ -363,9 +388,49 @@ export default function ReviewInsightsCard({ userId }: ReviewInsightsCardProps) 
                       </div>
                     </div>
                     {reminder.payload && Object.keys(reminder.payload).length > 0 && (
-                      <pre className="mt-2 whitespace-pre-wrap break-all rounded bg-white/80 p-2 text-[11px] text-slate-500">
-                        {JSON.stringify(reminder.payload, null, 2)}
-                      </pre>
+                      (() => {
+                        const entries = Object.entries(reminder.payload ?? {})
+                          .filter(([, value]) => value !== null && value !== undefined)
+                          .map(([key, value]) => {
+                            const displayLabel = reminderPayloadLabelMap[key] ?? key;
+                            if (typeof value === "string") {
+                              const trimmed = value.trim();
+                              if (key === "scheduledAt") {
+                                return { label: displayLabel, value: formatDateTime(trimmed) };
+                              }
+                              if (trimmed.length > 0) {
+                                return { label: displayLabel, value: trimmed };
+                              }
+                            }
+                            if (typeof value === "number") {
+                              return { label: displayLabel, value: String(value) };
+                            }
+                            if (value instanceof Date) {
+                              return { label: displayLabel, value: formatDateTime(value.toISOString()) };
+                            }
+                            return { label: displayLabel, value: JSON.stringify(value) };
+                          })
+                          .filter(item => Boolean(item?.value));
+
+                        if (entries.length === 0) {
+                          return (
+                            <pre className="mt-2 whitespace-pre-wrap break-all rounded bg-white/80 p-2 text-[11px] text-slate-500">
+                              {JSON.stringify(reminder.payload, null, 2)}
+                            </pre>
+                          );
+                        }
+
+                        return (
+                          <dl className="mt-2 space-y-1 text-xs text-slate-600">
+                            {entries.map((entry, index) => (
+                              <div key={`${entry.label}-${index}`} className="flex items-start justify-between gap-3">
+                                <dt className="min-w-[6rem] font-medium text-slate-600">{entry.label}</dt>
+                                <dd className="flex-1 break-words text-slate-700">{entry.value}</dd>
+                              </div>
+                            ))}
+                          </dl>
+                        );
+                      })()
                     )}
                   </li>
                 ))}

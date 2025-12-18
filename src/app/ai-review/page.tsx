@@ -216,6 +216,12 @@ export default function AiResumeReviewPage() {
   const { history, addEntry, removeEntry, clearHistory, replaceHistory } = useResumeReviewHistory();
   const [historySyncing, setHistorySyncing] = useState(false);
 
+  useEffect(() => {
+    if (!authLoading && !user) {
+      router.replace("/login");
+    }
+  }, [authLoading, user, router]);
+
   const {
     loading: portfolioLoading,
     syncing: portfolioSyncing,

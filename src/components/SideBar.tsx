@@ -1,6 +1,9 @@
 'use client';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
+import { auth } from '@/lib/firebase.client';
+import { signOut } from 'firebase/auth';
 import {
     Briefcase,
     LayoutDashboard,
@@ -18,6 +21,17 @@ type SidebarProps = {
 
 const Sidebar = ({ onInterviewClick }: SidebarProps) => {
     const { user, loading } = useAuth();
+    const router = useRouter();
+
+    const handleLogout = async () => {
+        try {
+            await signOut(auth());
+            localStorage.removeItem('user');
+            router.replace('/login');
+        } catch (error) {
+            console.error('ログアウトに失敗しました:', error);
+        }
+    };
 
     if (loading) return <p>Loading...</p>;
 
@@ -96,10 +110,14 @@ const Sidebar = ({ onInterviewClick }: SidebarProps) => {
                         <UserCog className="w-5 h-5 mr-3" />
                         <span>アカウント設定</span>
                     </a>
-                    <a href="#" className="flex items-center px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100">
+                    <button
+                        type="button"
+                        onClick={handleLogout}
+                        className="w-full text-left flex items-center px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100"
+                    >
                         <LogOut className="w-5 h-5 mr-3" />
                         <span>ログアウト</span>
-                    </a>
+                    </button>
                 </div>
             </nav>
 
