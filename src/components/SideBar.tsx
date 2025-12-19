@@ -88,7 +88,7 @@ const Sidebar = ({ onInterviewClick }: SidebarProps) => {
                     </a>
                     <a href="/ai-review" className="flex items-center px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100">
                         <Eye className="w-5 h-5 mr-3" />
-                        <span>AIレビュー</span>
+                        <span>AI添削</span>
                     </a>
                     <button
                         onClick={onInterviewClick}

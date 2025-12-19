@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-import { Mic, MicOff } from "lucide-react";
+import { Mic, MicOff, Volume2, VolumeX } from "lucide-react";
 
 type SpeechRecognitionResultLike = {
   isFinal: boolean;
@@ -56,10 +56,16 @@ export default function InterviewSession({ onFinish, questions }: InterviewSessi
   const answerRefs = useRef<(HTMLDivElement | null)[]>([]);
   const answersRef = useRef<{ questionId: number; answer: string }[]>([]);
   const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
+  const speechSynthesisRef = useRef<SpeechSynthesis | null>(null);
+  const lastSpokenRef = useRef<string>("");
+  const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
   const [isSpeechSupported, setIsSpeechSupported] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [speechError, setSpeechError] = useState("");
   const [interimTranscript, setInterimTranscript] = useState("");
+  const [isSpeechSynthesisSupported, setIsSpeechSynthesisSupported] = useState(false);
+  const [isSpeechEnabled, setIsSpeechEnabled] = useState(true);
+  const [speechSynthesisError, setSpeechSynthesisError] = useState("");
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -146,6 +152,76 @@ export default function InterviewSession({ onFinish, questions }: InterviewSessi
     };
   }, []);
 
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (!("speechSynthesis" in window)) {
+      setIsSpeechSynthesisSupported(false);
+      return;
+    }
+
+    speechSynthesisRef.current = window.speechSynthesis;
+    setIsSpeechSynthesisSupported(true);
+
+    const cancelSpeech = () => {
+      try {
+        window.speechSynthesis.cancel();
+      } catch {
+        /* ignore */
+      }
+    };
+
+    window.addEventListener("beforeunload", cancelSpeech);
+
+    return () => {
+      cancelSpeech();
+      window.removeEventListener("beforeunload", cancelSpeech);
+      speechSynthesisRef.current = null;
+      utteranceRef.current = null;
+      lastSpokenRef.current = "";
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!isSpeechSynthesisSupported || !isSpeechEnabled) return;
+    const synth = speechSynthesisRef.current;
+    if (!synth) return;
+
+    const latestQuestion = [...history]
+      .reverse()
+      .find(item => item.type === 'question');
+
+    if (!latestQuestion) return;
+    if (latestQuestion.text === lastSpokenRef.current) return;
+
+    try {
+      synth.cancel();
+      const utterance = new SpeechSynthesisUtterance(latestQuestion.text);
+      utterance.lang = "ja-JP";
+      utterance.rate = 1;
+      utterance.pitch = 1;
+      utteranceRef.current = utterance;
+      synth.speak(utterance);
+      lastSpokenRef.current = latestQuestion.text;
+      setSpeechSynthesisError("");
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "音声読み上げを開始できませんでした";
+      setSpeechSynthesisError(message);
+      lastSpokenRef.current = "";
+    }
+  }, [history, isSpeechEnabled, isSpeechSynthesisSupported]);
+
+  const stopSpeechSynthesis = () => {
+    const synth = speechSynthesisRef.current;
+    if (!synth) return;
+    try {
+      synth.cancel();
+    } catch {
+      /* ignore */
+    }
+    utteranceRef.current = null;
+    lastSpokenRef.current = "";
+  };
+
   const stopListening = () => {
     const recognition = recognitionRef.current;
     if (!recognition) return;
@@ -181,6 +257,7 @@ export default function InterviewSession({ onFinish, questions }: InterviewSessi
 
   const finishInterview = (finalAnswers: { questionId: number; answer: string }[]) => {
     stopListening();
+    stopSpeechSynthesis();
     onFinish(finalAnswers);
   };
 
@@ -284,6 +361,25 @@ export default function InterviewSession({ onFinish, questions }: InterviewSessi
                   <span>{isListening ? '停止' : '音声入力'}</span>
                 </button>
               )}
+              {isSpeechSynthesisSupported && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    const next = !isSpeechEnabled;
+                    setIsSpeechEnabled(next);
+                    if (!next) stopSpeechSynthesis();
+                  }}
+                  aria-pressed={isSpeechEnabled}
+                  className={`flex items-center gap-1 px-3 py-2 rounded-lg border transition ${
+                    isSpeechEnabled
+                      ? 'bg-green-50 border-green-400 text-green-700'
+                      : 'bg-gray-100 border-gray-300 text-gray-600'
+                  }`}
+                >
+                  {isSpeechEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
+                  <span>{isSpeechEnabled ? '読み上げON' : '読み上げOFF'}</span>
+                </button>
+              )}
               <button
                 className="bg-blue-600 text-white px-4 py-2 rounded-lg"
                 onClick={handleSend}
@@ -299,6 +395,9 @@ export default function InterviewSession({ onFinish, questions }: InterviewSessi
             )}
             {speechError && (
               <div className="text-sm text-red-600">音声入力エラー: {speechError}</div>
+            )}
+            {speechSynthesisError && (
+              <div className="text-sm text-red-600">音声読み上げエラー: {speechSynthesisError}</div>
             )}
           </div>
         )}
