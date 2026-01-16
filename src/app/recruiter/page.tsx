@@ -1,4 +1,9 @@
+import type { Metadata } from "next";
 import { Building2, Search, Star, Mail, Briefcase, User, Handshake, Eye } from 'lucide-react';
+
+export const metadata: Metadata = {
+  title: "採用担当者向けトップ",
+};
 
 const RecruiterHomePage = () => {
   return (

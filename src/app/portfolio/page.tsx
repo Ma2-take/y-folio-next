@@ -1,4 +1,9 @@
+import type { Metadata } from "next";
 import { Search, Heart, Eye, MessageCircle, LayoutGrid, List, Plus } from 'lucide-react';
+
+export const metadata: Metadata = {
+  title: "ポートフォリオ一覧",
+};
 
 const portfolioItems = [
   {

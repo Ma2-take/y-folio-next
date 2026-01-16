@@ -1,3 +1,9 @@
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "更新履歴",
+};
+
 const UpdateHistoryPage = () => {
   return (
     <main className="flex min-h-screen flex-col items-center pt-32">
