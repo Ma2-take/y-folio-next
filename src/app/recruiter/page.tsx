@@ -143,7 +143,6 @@ const RecruiterHomePage = () => {
             <div>
               <h5 className="font-semibold mb-4">サポート</h5>
               <ul className="space-y-2 text-gray-400">
-                <li><a href="#" className="hover:text-white transition">ヘルプ</a></li>
                 <li><a href="#" className="hover:text-white transition">利用規約</a></li>
                 <li><a href="#" className="hover:text-white transition">プライバシーポリシー</a></li>
               </ul>
