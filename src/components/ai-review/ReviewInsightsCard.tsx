@@ -72,6 +72,7 @@ const reminderPayloadLabelMap: Record<string, string> = {
   context: "コンテキスト",
   company: "企業名",
   position: "ポジション",
+  customEmail: "送信先メールアドレス",
 };
 
 export default function ReviewInsightsCard({ userId }: ReviewInsightsCardProps) {
@@ -86,6 +87,7 @@ export default function ReviewInsightsCard({ userId }: ReviewInsightsCardProps) 
   const [scheduleType, setScheduleType] = useState<ReminderType>("follow_up_review");
   const [scheduleChannel, setScheduleChannel] = useState<ReminderChannel>("in-app");
   const [scheduleDate, setScheduleDate] = useState("");
+  const [scheduleEmail, setScheduleEmail] = useState("");
   const [scheduleBusy, setScheduleBusy] = useState(false);
 
   const loadLogs = useCallback(async () => {
@@ -220,6 +222,20 @@ export default function ReviewInsightsCard({ userId }: ReviewInsightsCardProps) 
       if (Number.isNaN(scheduledAt.getTime())) {
         throw new Error("日時の形式が正しくありません");
       }
+      // payloadの作成
+      const payload: Record<string, unknown> = {};
+      
+      // カスタムメールアドレスがあればpayloadに追加
+      if (scheduleEmail.trim()) {
+        payload.customEmail = scheduleEmail.trim();
+      }
+      
+      // 面接関連の場合は追加情報を含める
+      if (scheduleType === "interview_preparation" || scheduleType === "interview_followup") {
+        payload.note = "interview";
+        payload.scheduledAt = scheduledAt.toISOString();
+      }
+      
       const response = await fetch("/api/ai/resume-review/reminders", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -228,9 +244,7 @@ export default function ReviewInsightsCard({ userId }: ReviewInsightsCardProps) 
           type: scheduleType,
           channel: scheduleChannel,
           scheduledAt: scheduledAt.toISOString(),
-          payload: scheduleType === "interview_preparation" || scheduleType === "interview_followup"
-            ? { note: "interview", scheduledAt: scheduledAt.toISOString() }
-            : null,
+          payload: Object.keys(payload).length > 0 ? payload : null,
         }),
       });
       if (!response.ok) {
@@ -238,6 +252,7 @@ export default function ReviewInsightsCard({ userId }: ReviewInsightsCardProps) 
         throw new Error(body.error || "リマインダーの登録に失敗しました");
       }
       setScheduleDate("");
+      setScheduleEmail("");
       setScheduleType("follow_up_review");
       await loadReminders();
       setActionMessage("リマインダーを登録しました");
@@ -504,6 +519,19 @@ export default function ReviewInsightsCard({ userId }: ReviewInsightsCardProps) 
                 </select>
               </div>
             </div>
+            {scheduleChannel === "email" && (
+              <div className="mt-3">
+                <label className="text-xs font-semibold text-slate-600">送信先メールアドレス（任意）</label>
+                <input
+                  type="email"
+                  value={scheduleEmail}
+                  onChange={event => setScheduleEmail(event.target.value)}
+                  className="mt-1 w-full rounded border border-slate-300 px-3 py-2 text-sm"
+                  placeholder="未入力の場合はアカウントのメールアドレスに送信"
+                />
+                <p className="mt-1 text-xs text-slate-500">※ 空欄の場合は、ユーザー登録されているメールアドレスに送信されます</p>
+              </div>
+            )}
             <div className="mt-3">
               <label className="text-xs font-semibold text-slate-600">通知日時</label>
               <input

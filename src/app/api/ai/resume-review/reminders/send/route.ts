@@ -52,9 +52,16 @@ export async function POST(request: Request) {
       );
     }
 
-    if (!user.email) {
+    // 送信先メールアドレスの決定
+    // 1. payloadにcustomEmailがあればそれを使用
+    // 2. なければユーザーのメールアドレスを使用
+    const payloadData = reminder.payload as Record<string, unknown> | null;
+    const customEmail = payloadData?.customEmail as string | undefined;
+    const recipientEmail = customEmail?.trim() || user.email;
+
+    if (!recipientEmail) {
       return NextResponse.json(
-        { error: 'ユーザーのメールアドレスが登録されていません' },
+        { error: 'メールアドレスが登録されていません' },
         { status: 400 }
       );
     }
@@ -62,7 +69,7 @@ export async function POST(request: Request) {
     // メールテンプレートを生成
     const emailTemplate = generateEmailTemplate({
       userName: user.name || undefined,
-      userEmail: user.email,
+      userEmail: recipientEmail,
       reminderType: reminder.type as ReminderType,
       scheduledAt: reminder.scheduledAt.toISOString(),
       payload: reminder.payload as Record<string, unknown> | null,
@@ -70,7 +77,7 @@ export async function POST(request: Request) {
 
     // メールを送信
     const result = await sendEmail({
-      to: user.email,
+      to: recipientEmail,
       subject: emailTemplate.subject,
       text: emailTemplate.text,
       html: emailTemplate.html,
@@ -154,8 +161,19 @@ export async function GET(request: Request) {
           where: { id: reminder.userId },
         });
 
-        if (!user || !user.email) {
-          console.error(`ユーザー情報が不完全: reminderId=${reminder.id}`);
+        if (!user) {
+          console.error(`ユーザーが見つかりません: reminderId=${reminder.id}`);
+          failCount++;
+          continue;
+        }
+
+        // 送信先メールアドレスの決定
+        const payloadData = reminder.payload as Record<string, unknown> | null;
+        const customEmail = payloadData?.customEmail as string | undefined;
+        const recipientEmail = customEmail?.trim() || user.email;
+
+        if (!recipientEmail) {
+          console.error(`メールアドレスが不完全: reminderId=${reminder.id}`);
           failCount++;
           continue;
         }
@@ -163,7 +181,7 @@ export async function GET(request: Request) {
         // メールテンプレートを生成
         const emailTemplate = generateEmailTemplate({
           userName: user.name || undefined,
-          userEmail: user.email,
+          userEmail: recipientEmail,
           reminderType: reminder.type as ReminderType,
           scheduledAt: reminder.scheduledAt.toISOString(),
           payload: reminder.payload as Record<string, unknown> | null,
@@ -171,7 +189,7 @@ export async function GET(request: Request) {
 
         // メールを送信
         const result = await sendEmail({
-          to: user.email,
+          to: recipientEmail,
           subject: emailTemplate.subject,
           text: emailTemplate.text,
           html: emailTemplate.html,
