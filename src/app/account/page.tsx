@@ -8,7 +8,6 @@ import {
   Share2,
   UserCog,
   LogOut,
-  HelpCircle,
   Bell,
   Plus,
 } from "lucide-react";
@@ -96,12 +95,6 @@ const AccountSettingsPage = () => {
             </a>
           </div>
         </nav>
-        <div className="p-4 border-t border-gray-200 shrink-0">
-          <a href="#" className="flex items-center text-sm text-gray-600 hover:text-indigo-600 transition">
-            <HelpCircle className="w-5 h-5 mr-2" />
-            ヘルプ & サポート
-          </a>
-        </div>
       </aside>
       {/* Main Content */}
       <div className="ml-64 flex-1">

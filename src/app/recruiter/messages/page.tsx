@@ -1,5 +1,5 @@
 "use client";
-import { Building2, LayoutDashboard, Search, Star, Mail, UserCog, LogOut, HelpCircle, Bell, Send, MoreVertical, Phone, Video, Paperclip, Smile } from "lucide-react";
+import { Building2, LayoutDashboard, Search, Star, Mail, UserCog, LogOut, Bell, Send, MoreVertical, Phone, Video, Paperclip, Smile } from "lucide-react";
 import React, { useState } from "react";
 import Link from "next/link";
 
@@ -141,12 +141,6 @@ export default function RecruiterMessagesPage() {
             </Link>
           </div>
         </nav>
-        <div className="p-4 border-t border-gray-200">
-          <Link href="/recruiter/help" className="flex items-center text-sm text-gray-600 hover:text-indigo-600 transition w-full">
-            <HelpCircle className="w-5 h-5 mr-2" />
-            ヘルプ & サポート
-          </Link>
-        </div>
       </div>
 
       {/* Main Content */}
