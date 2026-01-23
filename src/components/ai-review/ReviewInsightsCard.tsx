@@ -180,6 +180,33 @@ export default function ReviewInsightsCard({ userId }: ReviewInsightsCardProps) 
     }
   }, []);
 
+  const handleSendEmail = useCallback(async (reminderId: string, channel: ReminderChannel) => {
+    if (channel !== "email") {
+      setActionMessage("このリマインダーはメール送信対象ではありません");
+      return;
+    }
+    
+    if (!confirm("このリマインダーをメールで送信しますか？")) {
+      return;
+    }
+
+    try {
+      setActionMessage(null);
+      const response = await fetch(`/api/ai/resume-review/reminders/send?id=${encodeURIComponent(reminderId)}`, {
+        method: "POST",
+      });
+      if (!response.ok) {
+        const body = await response.json().catch(() => ({}));
+        throw new Error(body.error || "メールの送信に失敗しました");
+      }
+      setReminders(prev => prev.filter(item => item.id !== reminderId));
+      setActionMessage("メールを送信しました");
+    } catch (err) {
+      console.error("Failed to send email", err);
+      setActionMessage(err instanceof Error ? err.message : "メールの送信に失敗しました");
+    }
+  }, []);
+
   const handleScheduleReminder = useCallback(async () => {
     if (!userId) return;
     if (!scheduleDate) {
@@ -370,7 +397,17 @@ export default function ReviewInsightsCard({ userId }: ReviewInsightsCardProps) 
                           <span className="ml-2">通知: {reminderChannelLabelMap[reminder.channel] ?? reminder.channel}</span>
                         </p>
                       </div>
-                      <div className="flex gap-2">
+                      <div className="flex flex-wrap gap-2">
+                        {reminder.channel === "email" && (
+                          <button
+                            type="button"
+                            onClick={() => void handleSendEmail(reminder.id, reminder.channel)}
+                            className="rounded bg-blue-600 px-3 py-1 text-xs font-semibold text-white hover:bg-blue-700"
+                            title="今すぐメール送信"
+                          >
+                            メール送信
+                          </button>
+                        )}
                         <button
                           type="button"
                           onClick={() => void handleCompleteReminder(reminder.id)}
