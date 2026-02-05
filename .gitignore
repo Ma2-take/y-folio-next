@@ -49,3 +49,4 @@ next-env.d.ts
 .prisma/
 !.env.sample
 /src/generated/prisma
+y-folio\[src].zip
